@@ -10,6 +10,8 @@ import object.SuperObject;
 import tile.TileManager;
 import entity.Player;
 
+
+
 public class GamePanel extends Canvas {
 	
     // SCREEN SETTINGS
@@ -36,8 +38,8 @@ public class GamePanel extends Canvas {
     // WORLD SETTINGS
     public final int MAX_WORLD_COL = 32;
     public final int MAX_WORLD_ROW = 32;
-    public final int WORLD_WIDTH = MAX_WORLD_COL * TILE_SIZE;
-    public final int WORLD_HEIGHT = MAX_WORLD_ROW * TILE_SIZE;
+    public final int WORLD_WIDTH = MAX_WORLD_COL * 16;
+    public final int WORLD_HEIGHT = MAX_WORLD_ROW * 16;
 
     private GraphicsContext gc;
     private AnimationTimer gameLoop;
@@ -52,6 +54,8 @@ public class GamePanel extends Canvas {
     public AssetSetter aSetter = new AssetSetter(this);
 
     public CollisionChecker cChecker = new CollisionChecker(this);
+    
+    Sound sound = new Sound();
 
     public GamePanel() {
         super(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -77,6 +81,8 @@ public class GamePanel extends Canvas {
 
     public void setupGame() {
         aSetter.setObject();
+        
+        playMusic(0);
     }
 
     public void startGameLoop() {
@@ -115,4 +121,22 @@ public class GamePanel extends Canvas {
         player.render(gc);
     }
 
+    public void playMusic(int i) {
+    	
+    	sound.setFile(i);
+    	sound.play();
+    	sound.loop();
+    }
+    
+    public void stopMusic() {
+    	
+    	sound.stop();
+    }
+    
+    public void playSE(int i) {
+    	
+    	sound.setFile(i);
+    	sound.stop();
+    }
+    
 }

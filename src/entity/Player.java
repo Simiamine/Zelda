@@ -58,10 +58,10 @@ public class Player extends Entity {
     public void getPlayerImage() {
         try {
             for (int i = 0; i < 8; i++) {
-                upImages[i] = new Image("file:res/player/U" + (i ) + ".png");
-                downImages[i] = new Image("file:res/player/D" + (i ) + ".png");
-                rightImages[i] = new Image("file:res/player/R" + (i ) + ".png");
-                leftImages[i] = new Image("file:res/player/L" + (i ) + ".png");
+                upImages[i] = new Image("file:res/player/U" + i + ".png");
+                downImages[i] = new Image("file:res/player/D" + i + ".png");
+                rightImages[i] = new Image("file:res/player/R" + i + ".png");
+                leftImages[i] = new Image("file:res/player/L" + i + ".png");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,7 +124,7 @@ public class Player extends Entity {
     	
     	if(i != 999) {
     		
-    		gPanel.obj[i] = null;
+//    		gPanel.obj[i] = null;
     	}
     }
     public void render(GraphicsContext gc) {
