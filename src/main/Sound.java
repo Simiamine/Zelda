@@ -9,7 +9,7 @@ import java.net.URL;
 public class Sound {
     MediaPlayer mediaPlayer;
     URL[] soundURL = new URL[30];
-
+    
     public Sound() {
         soundURL[0] = getClass().getResource("/music/HyruleFieldloop.wav");
 

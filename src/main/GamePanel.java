@@ -81,7 +81,7 @@ public class GamePanel extends Canvas {
 
     public void setupGame() {
         aSetter.setObject();
-        
+        System.out.println(javafx.scene.media.Media.class);
         playMusic(0);
     }
 
