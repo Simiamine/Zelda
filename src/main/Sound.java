@@ -10,8 +10,8 @@ public class Sound {
     URL[] soundURL = new URL[30];
 
     public Sound() {
-        soundURL[0] = getClass().getResource("/res/music/HyruleFieldloop.wav");
-        soundURL[1] = getClass().getResource("/res/music/overworld.mp3");
+        soundURL[0] = getClass().getResource("file:/res/music/HyruleFieldloop.wav");
+        soundURL[1] = getClass().getResource("file:/res/music/overworld.mp3");
 
     }
 
