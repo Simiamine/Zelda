@@ -7,6 +7,7 @@ import object.OBJ_Grass;
 import object.OBJ_Stone;
 //import object.OBJ_Chest;
 import object.SuperObject;
+import object.OBJ_Chest;
 
 public class AssetSetter {
 
@@ -81,6 +82,10 @@ public class AssetSetter {
         initObject(OBJ_Stone.class, 13, 20);
         initObject(OBJ_Stone.class, 14, 20);
         initObject(OBJ_Stone.class, 15, 20);
+        
+        // Objets Chest
+        
+        initObject(OBJ_Chest.class, 12, 20);
 
     }
 }

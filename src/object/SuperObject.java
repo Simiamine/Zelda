@@ -17,6 +17,7 @@ public class SuperObject {
     public int solidAreaDefaultY = 0;
 
     public void render(GraphicsContext gc, GamePanel gPanel) {
+
         int screenX = worldX - gPanel.player.worldX + gPanel.player.screenX;
         int screenY = worldY - gPanel.player.worldY + gPanel.player.screenY;
 
@@ -26,5 +27,10 @@ public class SuperObject {
             worldY - GamePanel.getTileSize() < gPanel.player.worldY + gPanel.player.screenY) {
                 gc.drawImage(image, screenX, screenY, GamePanel.getTileSize(), GamePanel.getTileSize());
         }
+    }
+    
+    public boolean interact(GamePanel gPanel) {
+        // Par défaut, ne pas retirer l'objet
+        return false;
     }
 }

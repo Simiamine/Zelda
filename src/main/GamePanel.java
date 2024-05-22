@@ -1,36 +1,39 @@
 package main;
 
-import java.util.ArrayList;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import entity.Player;
+import entity.NPC;
 import object.SuperObject;
 import tile.TileManager;
-import entity.Player;
-
-
+import java.util.ArrayList;
+import java.util.List;
 
 public class GamePanel extends Canvas {
-	
+
     // SCREEN SETTINGS
     public static final int ORIGINAL_TILE_SIZE = 16;
     public static final int scale = 3;
-    public static final int TILE_SIZE = ORIGINAL_TILE_SIZE*scale;
+    public static final int TILE_SIZE = ORIGINAL_TILE_SIZE * scale;
+
     public static int getScale() {
         return scale;
     }
+
     public static int getTileSize() {
         return TILE_SIZE;
     }
+
     public static final int MAX_SCREEN_COL = 16;
     public static final int MAX_SCREEN_ROW = 14;
-    public static final int SCREEN_WIDTH = TILE_SIZE * MAX_SCREEN_COL ; // 256*3 pixels
+    public static final int SCREEN_WIDTH = TILE_SIZE * MAX_SCREEN_COL;
     public static int getScreenWidth() {
         return SCREEN_WIDTH;
-    }    
-    public static final int SCREEN_HEIGHT = TILE_SIZE * MAX_SCREEN_ROW ; // 224*3 pixels
+    }
+
+    public static final int SCREEN_HEIGHT = TILE_SIZE * MAX_SCREEN_ROW;
     public static int getScreenHeight() {
         return SCREEN_HEIGHT;
     }
@@ -44,99 +47,108 @@ public class GamePanel extends Canvas {
     private GraphicsContext gc;
     private AnimationTimer gameLoop;
 
-    private ArrayList<String> inputList = new ArrayList<String>();
+    private InputHandler inputHandler = new InputHandler();
 
     public Player player = new Player(this);
 
     TileManager tileManager = new TileManager(this);
 
-    public SuperObject obj[] = new SuperObject[10];
+    public SuperObject[] obj = new SuperObject[10];
     public AssetSetter aSetter = new AssetSetter(this);
+    public NPCSetter npcSetter = new NPCSetter(this);
 
     public CollisionChecker cChecker = new CollisionChecker(this);
     
     Sound sound = new Sound();
+    public List<NPC> npcs = new ArrayList<>();
 
+    
+    // GAME STATES
+    public int gameState;
+    public final int playState = 1;
+    public final int pauseState = 2;
+    public final int dialogueState = 3;
+    public final int characterState = 4;
+    
     public GamePanel() {
         super(SCREEN_WIDTH, SCREEN_HEIGHT);
         gc = getGraphicsContext2D();
         gc.setImageSmoothing(false);
-        // set up event handlers for key presses and releases
-        setFocusTraversable(true); // enable keyboard input for the canvas
-        setOnKeyPressed(this::handleKeyPressed);
-        setOnKeyReleased(this::handleKeyReleased);
-    }
-
-    private void handleKeyPressed(KeyEvent event) {
-        String keyName = event.getCode().toString();
-        if (!inputList.contains(keyName)) {
-            inputList.add(keyName);
-        }
-    }
-
-    private void handleKeyReleased(KeyEvent event) {
-        String keyName = event.getCode().toString();
-        inputList.remove(keyName);
+        setFocusTraversable(true);
+        setOnKeyPressed(getInputHandler()::handleKeyPressed);
+        setOnKeyReleased(getInputHandler()::handleKeyReleased);
     }
 
     public void setupGame() {
         aSetter.setObject();
-//        System.out.println(javafx.scene.media.Media.class);
+        npcSetter.setNPCs(); // Ajouter les NPCs
         playMusic(1);
+        gameState = playState;
     }
 
     public void startGameLoop() {
         gameLoop = new AnimationTimer() {
-
             @Override
             public void handle(long now) {
                 update();
                 render();
             }
-
         };
         gameLoop.start();
     }
 
     private void update() {
-        player.update(inputList);
+    	if(gameState == playState) {
+            player.update(getInputHandler().getInputList());
+            for (NPC npc : npcs) {
+                npc.update();
+    	}
+            if(gameState == pauseState) {
+            	
+            }
+        }
     }
 
     private void render() {
-        // clear canvas
         gc.clearRect(0, 0, getWidth(), getHeight());
-
-        // draw background
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, getWidth(), getHeight());
 
         tileManager.render(gc);
 
-        for (int i = 0; i < obj.length; i++) {
-            if (obj[i] != null) {
-                obj[i].render(gc, this);
+        for (SuperObject obj : obj) {
+            if (obj != null) {
+                obj.render(gc, this);
             }
+        }
+
+        for (NPC npc : npcs) {
+            npc.render(gc);
         }
 
         player.render(gc);
     }
 
     public void playMusic(int i) {
-    	
-    	sound.setFile(i);
-    	sound.play();
-    	sound.loop();
+        sound.setFile(i);
+        sound.play();
+        sound.loop();
     }
-    
+
     public void stopMusic() {
-    	
-    	sound.stop();
+        sound.stop();
     }
-    
+
     public void playSE(int i) {
-    	
-    	sound.setFile(i);
-    	sound.stop();
+        sound.setFile(i);
+        sound.play();
     }
-    
+
+    public InputHandler getInputHandler() {
+        return inputHandler;
+    }
+
+    public void setInputHandler(InputHandler inputHandler) {
+        this.inputHandler = inputHandler;
+    }
 }

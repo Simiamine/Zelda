@@ -2,9 +2,11 @@ package entity;
 
 import javafx.scene.image.Image;
 import javafx.scene.shape.Rectangle;
+import main.GamePanel;
 
 public class Entity {
 
+    GamePanel gPanel;
     public int worldX;
     public int worldY;
     public int speed;
@@ -20,5 +22,13 @@ public class Entity {
     public int solidAreaDefaultY;
 
     public boolean collisionOn = false;
-    
+    public boolean isSolid = false;
+
+    public Entity(GamePanel gPanel) {
+        this.gPanel = gPanel;
+        int tileSize = GamePanel.getTileSize();
+        solidArea = new Rectangle(0, 0, tileSize, tileSize);
+        solidAreaDefaultX = 0;
+        solidAreaDefaultY = 0;
+    }
 }

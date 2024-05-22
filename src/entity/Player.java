@@ -5,19 +5,17 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.shape.Rectangle;
 import main.GamePanel;
+import object.SuperObject;
 
 public class Player extends Entity {
 
-    private final GamePanel gPanel;
-    private final Image[] upImages = new Image[8];
-    private final Image[] downImages = new Image[8];
-    private final Image[] rightImages = new Image[8];
-    private final Image[] leftImages = new Image[8];
+    private final Image[][] directionImages = new Image[4][8]; // [0] = up, [1] = down, [2] = right, [3] = left
     public final int screenX;
     public final int screenY;
     private final int SPRITE_WIDTH = GamePanel.getScale() * 16;
     private final int SPRITE_HEIGHT = GamePanel.getScale() * 24;
     private boolean isMoving = false;
+    private final int interactionMargin = 1; // Marge de tolérance pour l'interaction
 
     public int getSpriteWidth() {
         return SPRITE_WIDTH;
@@ -27,44 +25,34 @@ public class Player extends Entity {
         return SPRITE_HEIGHT;
     }
 
-    public Player(GamePanel gPanel)
-    {
+    public Player(GamePanel gPanel) {
+        super(gPanel);
         this.gPanel = gPanel;
 
         screenX = GamePanel.getScreenWidth() / 2 - (GamePanel.getTileSize() / 2);
         screenY = GamePanel.getScreenHeight() / 2 - (GamePanel.getTileSize() / 2);
 
-        // Initialisation de solidArea
-        solidArea = new Rectangle();
-        solidArea.setX(8);
-        solidArea.setY(50);
-        solidArea.setWidth(16); // Ajuster la largeur selon vos besoins
-        solidArea.setHeight(16); // Ajuster la hauteur selon vos besoins
-
+        solidArea = new Rectangle(8, 50, 16, 16);
         solidAreaDefaultX = (int) solidArea.getX();
         solidAreaDefaultY = (int) solidArea.getY();
 
         setDefaultValues();
-        getPlayerImage();
+        loadPlayerImages();
     }
 
     public void setDefaultValues() {
         worldX = GamePanel.getTileSize() * 11 + 24;
         worldY = GamePanel.getTileSize() * 17;
         speed = 10;
-        direction = "down";
+        direction = "DOWN"; // Use uppercase for consistency
     }
 
-    public void getPlayerImage() {
-        try {
+    public void loadPlayerImages() {
+        String[] directions = {"U", "D", "R", "L"};
+        for (int dir = 0; dir < directions.length; dir++) {
             for (int i = 0; i < 8; i++) {
-                upImages[i] = new Image("file:res/player/U" + i + ".png");
-                downImages[i] = new Image("file:res/player/D" + i + ".png");
-                rightImages[i] = new Image("file:res/player/R" + i + ".png");
-                leftImages[i] = new Image("file:res/player/L" + i + ".png");
+                directionImages[dir][i] = new Image("file:res/player/" + directions[dir] + i + ".png");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -89,11 +77,21 @@ public class Player extends Entity {
 
         collisionOn = false;
         gPanel.cChecker.checkTile(this);
-        
         int objIndex = gPanel.cChecker.checkObject(this, true);
         pickUpObject(objIndex);
 
-        //int objIndex = gPanel.cChecker.checkObject(this, true);
+        // Vérifier les collisions avec les NPCs
+        for (NPC npc : gPanel.npcs) {
+            gPanel.cChecker.checkEntityCollision(this, npc);
+        }
+
+        // Vérifier l'interaction avec les NPCs
+        if (gPanel.getInputHandler().isSpacePressed()) {
+            NPC npc = getFacingNPC();
+            if (npc != null) {
+                interactWithNPC(npc);
+            }
+        }
 
         if (!collisionOn && isMoving) {
             switch (direction) {
@@ -109,8 +107,6 @@ public class Player extends Entity {
                 case "RIGHT":
                     worldX += speed;
                     break;
-                default:
-                    break;
             }
             spriteCounter++;
             if (spriteCounter > 3) {
@@ -120,47 +116,80 @@ public class Player extends Entity {
         }
     }
 
-    public void pickUpObject(int i) {
-    	
-    	if(i != 999) {
-    		
-//    		gPanel.obj[i] = null;
-    	}
+    private NPC getFacingNPC() {
+        for (NPC npc : gPanel.npcs) {
+            if (npc != null && isNear(npc) && isFacing(npc)) {
+                return npc;
+            }
+        }
+        return null;
     }
+
+    private boolean isNear(NPC npc) {
+        int playerLeftX = worldX - interactionMargin;
+        int playerRightX = worldX + GamePanel.getTileSize() + interactionMargin;
+        int playerTopY = worldY - interactionMargin;
+        int playerBottomY = worldY + GamePanel.getTileSize() + interactionMargin;
+
+        int npcLeftX = npc.worldX;
+        int npcRightX = npc.worldX + GamePanel.getTileSize();
+        int npcTopY = npc.worldY;
+        int npcBottomY = npc.worldY + (int) (GamePanel.getTileSize() * 1.5);
+
+        return playerRightX > npcLeftX && playerLeftX < npcRightX && playerBottomY > npcTopY && playerTopY < npcBottomY;
+    }
+
+    private boolean isFacing(NPC npc) {
+        int npcX = npc.worldX;
+        int npcY = npc.worldY;
+        int playerX = worldX;
+        int playerY = worldY;
+
+        switch (direction) {
+            case "UP":
+                return playerX + GamePanel.getTileSize() > npcX && playerX < npcX + GamePanel.getTileSize() && playerY > npcY;
+            case "DOWN":
+                return playerX + GamePanel.getTileSize() > npcX && playerX < npcX + GamePanel.getTileSize() && playerY < npcY;
+            case "LEFT":
+                return playerY + GamePanel.getTileSize() > npcY && playerY < npcY + GamePanel.getTileSize() * 1.5 && playerX > npcX;
+            case "RIGHT":
+                return playerY + GamePanel.getTileSize() > npcY && playerY < npcY + GamePanel.getTileSize() * 1.5 && playerX < npcX;
+            default:
+                return false;
+        }
+    }
+
+    public void pickUpObject(int i) {
+        if (i != 999) {
+            SuperObject obj = gPanel.obj[i];
+            if (obj.interact(gPanel)) {
+                gPanel.obj[i] = null; // Retirer l'objet après interaction si nécessaire
+            }
+        }
+    }
+
+    public void interactWithNPC(NPC npc) {
+        if (npc != null) {
+            String dialogue = npc.speak();
+            System.out.println(dialogue);
+        }
+    }
+
     public void render(GraphicsContext gc) {
         Image image = null;
 
         switch (direction) {
             case "UP":
-                if (isMoving) {
-                    image = upImages[spriteNum - 1];
-                } else {
-                    image = upImages[0];
-                }
+                image = isMoving ? directionImages[0][spriteNum - 1] : directionImages[0][0];
                 break;
             case "DOWN":
-                if (isMoving) {
-                    image = downImages[spriteNum - 1];
-                } else {
-                    image = downImages[0];
-                }
+                image = isMoving ? directionImages[1][spriteNum - 1] : directionImages[1][0];
                 break;
             case "RIGHT":
-                if (isMoving) {
-                    image = rightImages[spriteNum - 1];
-                } else {
-                    image = rightImages[0];
-                }
+                image = isMoving ? directionImages[2][spriteNum - 1] : directionImages[2][0];
                 break;
             case "LEFT":
-                if (isMoving) {
-                    image = leftImages[spriteNum - 1];
-                } else {
-                    image = leftImages[0];
-                }
-                break;
-            default:
-            	image = downImages[0];
+                image = isMoving ? directionImages[3][spriteNum - 1] : directionImages[3][0];
                 break;
         }
 
