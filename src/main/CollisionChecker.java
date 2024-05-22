@@ -2,11 +2,12 @@ package main;
 
 import entity.Entity;
 import entity.NPC;
+import entity.Monster;
 
 public class CollisionChecker {
 
     private GamePanel gPanel;
-    
+
     public CollisionChecker(GamePanel gPanel) {
         this.gPanel = gPanel;
     }
@@ -56,7 +57,7 @@ public class CollisionChecker {
                 entity.solidArea.setX(entity.worldX + entity.solidArea.getX());
                 entity.solidArea.setY(entity.worldY + entity.solidArea.getY());
 
-                // get object solid area position 
+                // get object solid area position
                 gPanel.obj[i].solidArea.setX(gPanel.obj[i].worldX + gPanel.obj[i].solidArea.getX());
                 gPanel.obj[i].solidArea.setY(gPanel.obj[i].worldY + gPanel.obj[i].solidArea.getY());
 
@@ -127,6 +128,12 @@ public class CollisionChecker {
             entity.solidArea.setY(entity.solidAreaDefaultY);
             target.solidArea.setX(target.solidAreaDefaultX);
             target.solidArea.setY(target.solidAreaDefaultY);
+        }
+    }
+
+    public void checkMonsterCollision(Entity entity) {
+        for (Monster monster : gPanel.monsters) {
+            checkEntityCollision(entity, monster);
         }
     }
 }

@@ -16,6 +16,11 @@ public class Player extends Entity {
     private final int SPRITE_HEIGHT = GamePanel.getScale() * 24;
     private boolean isMoving = false;
     private final int interactionMargin = 1; // Marge de tolérance pour l'interaction
+    
+    private int rubies;
+    private int hearts;
+    private final int maxRubies = 999;
+    private final int maxHearts = 3;
 
     public int getSpriteWidth() {
         return SPRITE_WIDTH;
@@ -45,6 +50,8 @@ public class Player extends Entity {
         worldY = GamePanel.getTileSize() * 17;
         speed = 10;
         direction = "DOWN"; // Use uppercase for consistency
+        rubies = 0;
+        hearts = maxHearts;
     }
 
     public void loadPlayerImages() {
@@ -57,61 +64,81 @@ public class Player extends Entity {
     }
 
     public void update(ArrayList<String> inputList) {
-        if (inputList.contains("LEFT") || inputList.contains("RIGHT") || inputList.contains("UP") || inputList.contains("DOWN")) {
-            if (inputList.contains("LEFT")) {
-                direction = "LEFT";
-            }
-            if (inputList.contains("RIGHT")) {
-                direction = "RIGHT";
-            }
-            if (inputList.contains("UP")) {
-                direction = "UP";
-            }
-            if (inputList.contains("DOWN")) {
-                direction = "DOWN";
-            }
-            isMoving = true;
-        } else {
-            isMoving = false;
-        }
+        handleInput(inputList);
+        checkCollisions();
+        interactWithEntities();
+        attackMonsters(); // Ajouter la vérification d'attaque
+        updatePosition();
+        updateSprite();
+        checkInventoryDisplay();
+    }
 
+    private void handleInput(ArrayList<String> inputList) {
+        isMoving = inputList.contains("LEFT") || inputList.contains("RIGHT") || inputList.contains("UP") || inputList.contains("DOWN");
+        if (inputList.contains("LEFT")) direction = "LEFT";
+        if (inputList.contains("RIGHT")) direction = "RIGHT";
+        if (inputList.contains("UP")) direction = "UP";
+        if (inputList.contains("DOWN")) direction = "DOWN";
+    }
+
+    private void checkCollisions() {
         collisionOn = false;
         gPanel.cChecker.checkTile(this);
         int objIndex = gPanel.cChecker.checkObject(this, true);
         pickUpObject(objIndex);
+        checkEntityCollisions();
+        gPanel.cChecker.checkMonsterCollision(this); // Ajouter la vérification de collision avec les monstres
+    }
 
-        // Vérifier les collisions avec les NPCs
+    private void checkEntityCollisions() {
         for (NPC npc : gPanel.npcs) {
             gPanel.cChecker.checkEntityCollision(this, npc);
         }
+    }
 
-        // Vérifier l'interaction avec les NPCs
+    private void interactWithEntities() {
         if (gPanel.getInputHandler().isSpacePressed()) {
             NPC npc = getFacingNPC();
             if (npc != null) {
                 interactWithNPC(npc);
             }
         }
+    }
 
+    private void attackMonsters() {
+        if (gPanel.getInputHandler().isAttackPressed()) {
+            Monster monster = getFacingMonster();
+            if (monster != null) {
+                monster.receiveDamage(1); // Attaque le monstre avec 1 point de dégât
+            }
+        }
+    }
+
+    private void updatePosition() {
         if (!collisionOn && isMoving) {
             switch (direction) {
-                case "UP":
-                    worldY -= speed;
-                    break;
-                case "DOWN":
-                    worldY += speed;
-                    break;
-                case "LEFT":
-                    worldX -= speed;
-                    break;
-                case "RIGHT":
-                    worldX += speed;
-                    break;
+                case "UP": worldY -= speed; break;
+                case "DOWN": worldY += speed; break;
+                case "LEFT": worldX -= speed; break;
+                case "RIGHT": worldX += speed; break;
             }
-            spriteCounter++;
-            if (spriteCounter > 3) {
-                spriteNum = (spriteNum % 8) + 1; // Change de sprite de 1 à 8
-                spriteCounter = 0;
+        }
+    }
+
+    private void updateSprite() {
+        spriteCounter++;
+        if (spriteCounter > 3) {
+            spriteNum = (spriteNum % 8) + 1; // Change de sprite de 1 à 8
+            spriteCounter = 0;
+        }
+    }
+
+    private void checkInventoryDisplay() {
+        if (gPanel.getInputHandler().isIPressed()) {
+            if (inventory.getItems().isEmpty()) {
+                System.out.println("Inventaire vide");
+            } else {
+                inventory.displayInventory();
             }
         }
     }
@@ -125,35 +152,44 @@ public class Player extends Entity {
         return null;
     }
 
-    private boolean isNear(NPC npc) {
+    private Monster getFacingMonster() {
+        for (Monster monster : gPanel.monsters) {
+            if (monster != null && isNear(monster) && isFacing(monster)) {
+                return monster;
+            }
+        }
+        return null;
+    }
+
+    private boolean isNear(Entity entity) {
         int playerLeftX = worldX - interactionMargin;
         int playerRightX = worldX + GamePanel.getTileSize() + interactionMargin;
         int playerTopY = worldY - interactionMargin;
         int playerBottomY = worldY + GamePanel.getTileSize() + interactionMargin;
 
-        int npcLeftX = npc.worldX;
-        int npcRightX = npc.worldX + GamePanel.getTileSize();
-        int npcTopY = npc.worldY;
-        int npcBottomY = npc.worldY + (int) (GamePanel.getTileSize() * 1.5);
+        int entityLeftX = entity.worldX;
+        int entityRightX = entity.worldX + GamePanel.getTileSize();
+        int entityTopY = entity.worldY;
+        int entityBottomY = entity.worldY + (int) (GamePanel.getTileSize() * 1.5);
 
-        return playerRightX > npcLeftX && playerLeftX < npcRightX && playerBottomY > npcTopY && playerTopY < npcBottomY;
+        return playerRightX > entityLeftX && playerLeftX < entityRightX && playerBottomY > entityTopY && playerTopY < entityBottomY;
     }
 
-    private boolean isFacing(NPC npc) {
-        int npcX = npc.worldX;
-        int npcY = npc.worldY;
+    private boolean isFacing(Entity entity) {
+        int entityX = entity.worldX;
+        int entityY = entity.worldY;
         int playerX = worldX;
         int playerY = worldY;
 
         switch (direction) {
             case "UP":
-                return playerX + GamePanel.getTileSize() > npcX && playerX < npcX + GamePanel.getTileSize() && playerY > npcY;
+                return playerX + GamePanel.getTileSize() > entityX && playerX < entityX + GamePanel.getTileSize() && playerY > entityY;
             case "DOWN":
-                return playerX + GamePanel.getTileSize() > npcX && playerX < npcX + GamePanel.getTileSize() && playerY < npcY;
+                return playerX + GamePanel.getTileSize() > entityX && playerX < entityX + GamePanel.getTileSize() && playerY < entityY;
             case "LEFT":
-                return playerY + GamePanel.getTileSize() > npcY && playerY < npcY + GamePanel.getTileSize() * 1.5 && playerX > npcX;
+                return playerY + GamePanel.getTileSize() > entityY && playerY < entityY + GamePanel.getTileSize() * 1.5 && playerX > entityX;
             case "RIGHT":
-                return playerY + GamePanel.getTileSize() > npcY && playerY < npcY + GamePanel.getTileSize() * 1.5 && playerX < npcX;
+                return playerY + GamePanel.getTileSize() > entityY && playerY < entityY + GamePanel.getTileSize() * 1.5 && playerX < entityX;
             default:
                 return false;
         }
@@ -163,7 +199,7 @@ public class Player extends Entity {
         if (i != 999) {
             SuperObject obj = gPanel.obj[i];
             if (obj.interact(gPanel)) {
-                gPanel.obj[i] = null; // Retirer l'objet après interaction si nécessaire
+                gPanel.obj[i] = null; // Remove the object from the game world
             }
         }
     }
@@ -172,6 +208,13 @@ public class Player extends Entity {
         if (npc != null) {
             String dialogue = npc.speak();
             System.out.println(dialogue);
+            // Example interaction: transfer an item from NPC to player
+            if (!npc.inventory.getItems().isEmpty()) {
+                SuperObject item = npc.inventory.getItems().get(0);
+                npc.inventory.removeItem(item);
+                inventory.addItem(item);
+                System.out.println("Received " + item.name + " from " + npc.getClass().getSimpleName());
+            }
         }
     }
 
@@ -196,5 +239,33 @@ public class Player extends Entity {
         if (image != null) {
             gc.drawImage(image, screenX, screenY, getSpriteWidth(), getSpriteHeight());
         }
+    }
+
+    public void addRuby(int amount) {
+        rubies = Math.min(rubies + amount, maxRubies);
+        System.out.println("Rubies: " + rubies);
+    }
+
+    public void addHeart(int amount) {
+        hearts = Math.min(hearts + amount, maxHearts);
+        System.out.println("Hearts: " + hearts);
+    }
+
+    public void takeDamage(int damage) {
+        hearts = Math.max(hearts - damage, 0);
+        if (hearts == 0) {
+            System.out.println("Player is dead");
+            // Handle player death
+        } else {
+            System.out.println("Hearts: " + hearts);
+        }
+    }
+
+    public int getRubies() {
+        return rubies;
+    }
+
+    public int getHearts() {
+        return hearts;
     }
 }

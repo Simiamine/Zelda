@@ -22,6 +22,7 @@ public abstract class NPC extends Entity {
         solidAreaDefaultY = 0;
         collisionOn = true; // Activer la collision par défaut
         isSolid = true; // NPC est solide par défaut
+        inventory = new Inventory(); // Initialize inventory for NPC
     }
 
     public void setDialogues(String[] dialogues) {
@@ -42,8 +43,6 @@ public abstract class NPC extends Entity {
     public void update() {
         // Pas de mouvement pour ce NPC par défaut
     }
-
-
 
     public void render(GraphicsContext gc) {
         int screenX = worldX - gPanel.player.worldX + gPanel.player.screenX;

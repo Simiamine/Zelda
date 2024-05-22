@@ -3,9 +3,11 @@ package main;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import entity.Player;
 import entity.NPC;
+import entity.Monster;
 import object.SuperObject;
 import tile.TileManager;
 import java.util.ArrayList;
@@ -56,13 +58,13 @@ public class GamePanel extends Canvas {
     public SuperObject[] obj = new SuperObject[10];
     public AssetSetter aSetter = new AssetSetter(this);
     public NPCSetter npcSetter = new NPCSetter(this);
+    public List<Monster> monsters = new ArrayList<>(); // Ajout de la liste de monstres
 
     public CollisionChecker cChecker = new CollisionChecker(this);
     
     Sound sound = new Sound();
     public List<NPC> npcs = new ArrayList<>();
 
-    
     // GAME STATES
     public int gameState;
     public final int playState = 1;
@@ -70,6 +72,9 @@ public class GamePanel extends Canvas {
     public final int dialogueState = 3;
     public final int characterState = 4;
     
+    private Image rubyImage;
+    private Image heartImage;
+
     public GamePanel() {
         super(SCREEN_WIDTH, SCREEN_HEIGHT);
         gc = getGraphicsContext2D();
@@ -77,13 +82,26 @@ public class GamePanel extends Canvas {
         setFocusTraversable(true);
         setOnKeyPressed(getInputHandler()::handleKeyPressed);
         setOnKeyReleased(getInputHandler()::handleKeyReleased);
+        loadUIImages();
+    }
+
+    private void loadUIImages() {
+        rubyImage = new Image("file:res/ui/ruby.png");
+        heartImage = new Image("file:res/ui/heart.png");
     }
 
     public void setupGame() {
         aSetter.setObject();
         npcSetter.setNPCs(); // Ajouter les NPCs
+        addMonster(new Monster(this), 10, 10); // Ajouter un monstre à la position (10, 10)
         playMusic(1);
         gameState = playState;
+    }
+
+    public void addMonster(Monster monster, int col, int row) {
+        monster.worldX = col * GamePanel.getTileSize();
+        monster.worldY = row * GamePanel.getTileSize();
+        monsters.add(monster);
     }
 
     public void startGameLoop() {
@@ -98,13 +116,13 @@ public class GamePanel extends Canvas {
     }
 
     private void update() {
-    	if(gameState == playState) {
+        if(gameState == playState) {
             player.update(getInputHandler().getInputList());
             for (NPC npc : npcs) {
                 npc.update();
-    	}
-            if(gameState == pauseState) {
-            	
+            }
+            for (Monster monster : monsters) {
+                monster.update();
             }
         }
     }
@@ -126,7 +144,25 @@ public class GamePanel extends Canvas {
             npc.render(gc);
         }
 
+        for (Monster monster : monsters) {
+            monster.render(gc);
+        }
+
         player.render(gc);
+
+        renderPlayerStats();
+    }
+
+    private void renderPlayerStats() {
+        // Draw rubies
+        gc.drawImage(rubyImage, 20, 20, 32, 32);
+        gc.setFill(Color.WHITE);
+        gc.fillText(String.valueOf(player.getRubies()), 60, 45);
+
+        // Draw hearts
+        for (int i = 0; i < player.getHearts(); i++) {
+            gc.drawImage(heartImage, 20 + (i * 40), 60, 32, 32);
+        }
     }
 
     public void playMusic(int i) {
@@ -150,5 +186,14 @@ public class GamePanel extends Canvas {
 
     public void setInputHandler(InputHandler inputHandler) {
         this.inputHandler = inputHandler;
+    }
+
+    public int findEmptyObjectIndex() {
+        for (int i = 0; i < obj.length; i++) {
+            if (obj[i] == null) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
