@@ -5,6 +5,8 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import entity.Player;
 import entity.NPC;
 import entity.Monster;
@@ -74,6 +76,8 @@ public class GamePanel extends Canvas {
     
     private Image rubyImage;
     private Image heartImage;
+    private Image heartEmptyImage;
+    private Font customFont;
 
     public GamePanel() {
         super(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -83,11 +87,22 @@ public class GamePanel extends Canvas {
         setOnKeyPressed(getInputHandler()::handleKeyPressed);
         setOnKeyReleased(getInputHandler()::handleKeyReleased);
         loadUIImages();
+        loadCustomFont();
     }
 
     private void loadUIImages() {
         rubyImage = new Image("file:res/ui/ruby.png");
         heartImage = new Image("file:res/ui/heart.png");
+        heartEmptyImage = new Image("file:res/ui/heart_empty.png");
+    }
+
+    private void loadCustomFont() {
+        try {
+            customFont = Font.loadFont("file:res/font/font.ttf", 30);
+        } catch (Exception e) {
+            e.printStackTrace();
+            customFont = Font.font("Verdana", FontWeight.BOLD, 30); // Fallback font
+        }
     }
 
     public void setupGame() {
@@ -154,14 +169,20 @@ public class GamePanel extends Canvas {
     }
 
     private void renderPlayerStats() {
+        gc.setFont(customFont);
+        gc.setFill(Color.BLACK);
+
         // Draw rubies
         gc.drawImage(rubyImage, 20, 20, 32, 32);
-        gc.setFill(Color.WHITE);
         gc.fillText(String.valueOf(player.getRubies()), 60, 45);
 
         // Draw hearts
-        for (int i = 0; i < player.getHearts(); i++) {
-            gc.drawImage(heartImage, 20 + (i * 40), 60, 32, 32);
+        for (int i = 0; i < player.maxHearts; i++) {
+            if (i < player.getHearts()) {
+                gc.drawImage(heartImage, 20 + (i * 40), 60, 32, 32);
+            } else {
+                gc.drawImage(heartEmptyImage, 20 + (i * 40), 60, 32, 32);
+            }
         }
     }
 
@@ -195,5 +216,13 @@ public class GamePanel extends Canvas {
             }
         }
         return -1;
+    }
+
+    public void resetGame() {
+        player.setDefaultValues();
+        monsters.clear();
+        npcSetter.setNPCs(); // Réinitialiser les NPCs
+        addMonster(new Monster(this), 10, 10); // Ajouter un monstre à la position (10, 10)
+        gameState = playState;
     }
 }

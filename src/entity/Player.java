@@ -19,8 +19,8 @@ public class Player extends Entity {
     
     private int rubies;
     private int hearts;
-    private final int maxRubies = 999;
-    private final int maxHearts = 3;
+    public final int maxRubies = 999;
+    public final int maxHearts = 3;
 
     public int getSpriteWidth() {
         return SPRITE_WIDTH;
@@ -254,8 +254,8 @@ public class Player extends Entity {
     public void takeDamage(int damage) {
         hearts = Math.max(hearts - damage, 0);
         if (hearts == 0) {
-            System.out.println("Player is dead");
-            // Handle player death
+            System.out.println("Game Over");
+            gPanel.resetGame(); // Reset the game
         } else {
             System.out.println("Hearts: " + hearts);
         }
