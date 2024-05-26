@@ -1,6 +1,7 @@
 package main;
 
 import entity.NPC;
+import entity.NPC_Merchant;
 import entity.Player;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -261,6 +262,57 @@ public class UI {
 
         gc.fillText(replayOption, xReplay, y);
         gc.fillText(quitOption, xQuit, y + 30);
+    }
+    public void showTradeWindow(NPC_Merchant merchant) {
+        // FRAME
+        int frameX = GamePanel.TILE_SIZE * 3;
+        int frameY = GamePanel.TILE_SIZE * 3;
+        int frameWidth = GamePanel.TILE_SIZE * 10;
+        int frameHeight = GamePanel.TILE_SIZE * 6;
+
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        final int slotXStart = frameX + 20;
+        final int slotYStart = frameY + 20;
+        int slotX = slotXStart;
+        int slotY = slotYStart;
+
+        for (int i = 0; i < merchant.inventory.getItems().size(); i++) {
+            SuperObject item = merchant.inventory.getItems().get(i);
+
+            if (item.image != null) {
+                gc.drawImage(item.image, slotX, slotY, GamePanel.getTileSize(), GamePanel.getTileSize());
+            } else {
+                gc.setFill(Color.WHITE);
+                gc.fillText(item.name, slotX + 10, slotY + 25);
+            }
+
+            gc.setFill(Color.YELLOW);
+            gc.fillText("10 Rubies", slotX + 10, slotY + 45);
+
+            slotX += GamePanel.getTileSize();
+
+            if ((i + 1) % 4 == 0) {
+                slotX = slotXStart;
+                slotY += GamePanel.getTileSize();
+            }
+        }
+
+        // CURSOR
+        int cursorX = slotXStart + (GamePanel.TILE_SIZE * slotCol);
+        int cursorY = slotYStart + (GamePanel.TILE_SIZE * slotRow);
+        int cursorWidth = GamePanel.TILE_SIZE;
+        int cursorHeight = GamePanel.TILE_SIZE;
+
+        gc.setStroke(Color.WHITE);
+        gc.setLineWidth(2);
+        gc.strokeRoundRect(cursorX, cursorY, cursorWidth, cursorHeight, 10, 10);
+
+        // Draw purchase button
+        gc.setFill(Color.GREEN);
+        gc.fillRoundRect(frameX + frameWidth - GamePanel.TILE_SIZE * 3, frameY + frameHeight - GamePanel.TILE_SIZE, GamePanel.TILE_SIZE * 2, GamePanel.TILE_SIZE / 2, 10, 10);
+        gc.setFill(Color.WHITE);
+        gc.fillText("Buy", frameX + frameWidth - GamePanel.TILE_SIZE * 2.5, frameY + frameHeight - GamePanel.TILE_SIZE / 2);
     }
 
 

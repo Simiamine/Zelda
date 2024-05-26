@@ -43,7 +43,7 @@ public class OBJ_Bomb extends SuperObject {
                 int distanceX = Math.abs(userX - monsterX);
                 int distanceY = Math.abs(userY - monsterY);
 
-                if (distanceX <= tileSize * 2 && distanceY <= tileSize * 2) {
+                if (distanceX <= tileSize * 3 && distanceY <= tileSize * 3) {
                     monster.receiveDamage(20);
                 }
             }
@@ -57,7 +57,7 @@ public class OBJ_Bomb extends SuperObject {
             int distanceX = Math.abs(userX - playerX);
             int distanceY = Math.abs(userY - playerY);
 
-            if (distanceX <= tileSize * 2 && distanceY <= tileSize * 2) {
+            if (distanceX <= tileSize * 3 && distanceY <= tileSize * 3) {
                 player.takeDamage(1);
             }
             System.out.println("La bombe a explosé !");

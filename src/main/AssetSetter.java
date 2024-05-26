@@ -168,6 +168,8 @@ public class AssetSetter {
     	initObject(OBJ_Stone.class, 0, 18, 0);
     	initObject(OBJ_Stone.class, 0, 19, 0);
     	initObject(OBJ_Stone.class, 0, 20, 0);
+    	initObject(OBJ_Stone.class, 0, 12, 0);
+    	initObject(OBJ_Stone.class, 0, 13, 0);
 
     	// Ajouter des objets de type "Chest" (coffre) à différentes positions
     	initChest(10, 8, 1, new OBJ_Triforce());

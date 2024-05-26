@@ -1,8 +1,8 @@
 package main;
 
-//import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
+
 import java.util.ArrayList;
 
 public class InputHandler implements EventHandler<KeyEvent> {
@@ -64,12 +64,19 @@ public class InputHandler implements EventHandler<KeyEvent> {
                     }
                 } else if (gPanel.gameState == gPanel.playState) {
                     enterPressed = true;
+                } else if (gPanel.gameState == gPanel.commerceState) {
+                    int itemIndex = gPanel.ui.slotRow * 4 + gPanel.ui.slotCol;
+                    if (itemIndex < gPanel.merchant.inventory.getItems().size()) {
+                        gPanel.merchant.trade(gPanel.merchant.inventory.getItems().get(itemIndex));
+                    }
                 }
                 break;
             case UP:
                 if (gPanel.gameState == gPanel.playState) {
                     moveUp = true;
                 } else if (gPanel.gameState == gPanel.inventoryState) {
+                    gPanel.ui.slotRow = Math.max(gPanel.ui.slotRow - 1, 0);
+                } else if (gPanel.gameState == gPanel.commerceState) {
                     gPanel.ui.slotRow = Math.max(gPanel.ui.slotRow - 1, 0);
                 }
                 break;
@@ -78,12 +85,16 @@ public class InputHandler implements EventHandler<KeyEvent> {
                     moveDown = true;
                 } else if (gPanel.gameState == gPanel.inventoryState) {
                     gPanel.ui.slotRow = Math.min(gPanel.ui.slotRow + 1, 5); // assuming 6 rows
+                } else if (gPanel.gameState == gPanel.commerceState) {
+                    gPanel.ui.slotRow = Math.min(gPanel.ui.slotRow + 1, 5); // assuming 6 rows
                 }
                 break;
             case LEFT:
                 if (gPanel.gameState == gPanel.playState) {
                     moveLeft = true;
                 } else if (gPanel.gameState == gPanel.inventoryState) {
+                    gPanel.ui.slotCol = Math.max(gPanel.ui.slotCol - 1, 0);
+                } else if (gPanel.gameState == gPanel.commerceState) {
                     gPanel.ui.slotCol = Math.max(gPanel.ui.slotCol - 1, 0);
                 }
                 break;
@@ -92,26 +103,17 @@ public class InputHandler implements EventHandler<KeyEvent> {
                     moveRight = true;
                 } else if (gPanel.gameState == gPanel.inventoryState) {
                     gPanel.ui.slotCol = Math.min(gPanel.ui.slotCol + 1, 3); // assuming 4 columns
+                } else if (gPanel.gameState == gPanel.commerceState) {
+                    gPanel.ui.slotCol = Math.min(gPanel.ui.slotCol + 1, 3); // assuming 4 columns
                 }
                 break;
             case T:
                 showTextDebug = !showTextDebug;
                 break;
-//            case R:
-//                if (gPanel.gameState == gPanel.dialogueState) {
-//                    gPanel.resetGame();
-//                }
-//                break;
-//            case Q:
-//                if (gPanel.gameState == gPanel.dialogueState) {
-//                    Platform.exit();
-//                }
-//                break;
             default:
                 break;
         }
     }
-
 
     public void handleKeyReleased(KeyEvent event) {
         String keyName = event.getCode().toString();
@@ -126,19 +128,15 @@ public class InputHandler implements EventHandler<KeyEvent> {
             case A:
                 attackPressed = false;
                 break;
-            
             case UP:
                 moveUp = false;
                 break;
-            
             case DOWN:
                 moveDown = false;
                 break;
-            
             case LEFT:
                 moveLeft = false;
                 break;
-            
             case RIGHT:
                 moveRight = false;
                 break;

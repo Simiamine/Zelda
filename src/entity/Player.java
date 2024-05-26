@@ -63,6 +63,7 @@ public class Player extends Entity {
         hearts = maxHearts;
         force = 1;
         attackRange = 1;
+        gPanel.currentMap = 0;
     }
 
     public void loadPlayerImages() {

@@ -1,16 +1,22 @@
 package main;
 
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import entity.Player;
 import entity.NPC;
+import entity.NPC_Merchant;
 import entity.Monster;
 import object.SuperObject;
 import tile.TileManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class GamePanel extends Canvas {
 
@@ -67,6 +73,9 @@ public class GamePanel extends Canvas {
 
     // Victory and failure conditions
     private boolean hasWon = false;
+    
+    public NPC_Merchant merchant; 
+
 
     public GamePanel() {
         super(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -197,6 +206,7 @@ public class GamePanel extends Canvas {
         npcSetter.setNPCs();
         monsterSetter.setMonsters();
         gameState = playState;
+        hasWon = false;
     }
     
     public void setVictoryCondition() {
@@ -204,12 +214,30 @@ public class GamePanel extends Canvas {
         checkVictoryConditions();
     }
     
+    private void showVictoryDialog() {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(AlertType.CONFIRMATION);
+            alert.setTitle("Victoire");
+            alert.setHeaderText(null);
+            alert.setContentText("Vous avez gagné ! Voulez-vous :");
+
+            ButtonType quitButton = new ButtonType("Quitter");
+            ButtonType replayButton = new ButtonType("Relancer");
+
+            alert.getButtonTypes().setAll(quitButton, replayButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == quitButton) {
+                Platform.exit();
+            } else if (result.get() == replayButton) {
+                resetGame();
+            }
+        });
+    }
+        
     private void checkVictoryConditions() {
         if (hasWon) {
-            System.out.println("You win!");
-            gameState = dialogueState;
-            ui.currentDialogue = "Congratulations! You have obtained the Triforce!";
-            ui.drawDialogueScreen();
+        	showVictoryDialog();
             
         }
     }
@@ -218,6 +246,30 @@ public class GamePanel extends Canvas {
         if (player.getHearts() <= 0) {
             System.out.println("Game Over");
             gameState = dialogueState;
+        }
+    }
+    
+    public void interactWithNPC(NPC npc) {
+        if (npc instanceof NPC_Merchant) {
+            NPC_Merchant merchant = (NPC_Merchant) npc;
+            merchant.interact();
+        } else {
+            if (npc != null) {
+                String dialogue = npc.speak();
+                if (!dialogue.isEmpty()) {
+                    ui.setCurrentDialogue(dialogue);
+                    gameState = dialogueState;
+                } else {
+                    gameState = playState;
+                }
+                // Example interaction: transfer an item from NPC to player
+                if (!npc.inventory.getItems().isEmpty()) {
+                    SuperObject item = npc.inventory.getItems().get(0);
+                    npc.inventory.removeItem(item);
+                    player.inventory.addItem(item);
+                    System.out.println("Received " + item.name + " from " + npc.getClass().getSimpleName());
+                }
+            }
         }
     }
     private void setupTeleportationSquares() {

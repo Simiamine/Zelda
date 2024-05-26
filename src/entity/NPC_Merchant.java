@@ -3,6 +3,7 @@ package entity;
 import javafx.scene.image.Image;
 import main.GamePanel;
 import object.OBJ_Potion;
+import object.SuperObject;
 import object.OBJ_Key;
 
 public class NPC_Merchant extends NPC {
@@ -38,9 +39,24 @@ public class NPC_Merchant extends NPC {
         }
     }
 
-    public void trade() {
-        // Logique pour le commerce
-        System.out.println("Vous avez acheté un objet!");
-        // Déduire des rubis du joueur et ajouter l'objet à son inventaire
+    public void interact() {
+        if (gPanel.player.getRubies() >= 10) {
+            gPanel.ui.showTradeWindow(this);
+            gPanel.gameState = gPanel.commerceState;
+        } else {
+            gPanel.ui.setCurrentDialogue("Vous n'avez pas assez de rubis.");
+            gPanel.gameState = gPanel.dialogueState;
+        }
+    }
+
+    public void trade(SuperObject item) {
+        if (gPanel.player.getRubies() >= 10) {
+            gPanel.player.addRuby(-10);
+            gPanel.player.inventory.addItem(item);
+            inventory.removeItem(item);
+            System.out.println("Vous avez acheté : " + item.name);
+        } else {
+            System.out.println("Pas assez de rubis pour acheter cet objet.");
+        }
     }
 }
