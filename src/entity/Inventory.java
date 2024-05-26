@@ -6,40 +6,40 @@ import object.SuperObject;
 
 public class Inventory {
 
-    // Liste des objets contenus dans l'inventaire
-    private List<SuperObject> items;
+    private List<SuperObject> items; // Liste des objets de l'inventaire
 
-    // Constructeur de la classe Inventory
     public Inventory() {
-        // Initialisation de la liste des objets
         items = new ArrayList<>();
     }
 
-    // Méthode pour ajouter un objet à l'inventaire
+    // Ajoute un objet à l'inventaire
     public void addItem(SuperObject item) {
         items.add(item);
     }
 
-    // Méthode pour supprimer un objet de l'inventaire
+    // Retire un objet de l'inventaire
     public void removeItem(SuperObject item) {
         items.remove(item);
     }
 
-    // Méthode pour obtenir la liste des objets de l'inventaire
+    // Retourne la liste des objets
     public List<SuperObject> getItems() {
         return items;
     }
 
-    // Méthode pour vérifier si un objet est présent dans l'inventaire
+    // Vérifie si l'inventaire contient un objet spécifique
     public boolean contains(SuperObject item) {
         return items.contains(item);
     }
 
-    // Méthode pour afficher le contenu de l'inventaire dans la console
+    // Vérifie si l'inventaire contient un objet par son nom
+    public boolean containsItem(String itemName) {
+        return items.stream().anyMatch(item -> item.name.equalsIgnoreCase(itemName));
+    }
+
+    // Affiche le contenu de l'inventaire
     public void displayInventory() {
         System.out.println("Inventory:");
-        for (SuperObject item : items) {
-            System.out.println("- " + item.name);
-        }
+        items.forEach(item -> System.out.println("- " + item.name));
     }
 }

@@ -3,8 +3,11 @@ package entity;
 import java.util.ArrayList;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import main.GamePanel;
+import main.InputHandler;
+//import object.OBJ_Grass;
 import object.SuperObject;
 
 public class Player extends Entity {
@@ -20,7 +23,12 @@ public class Player extends Entity {
     private int rubies;
     private int hearts;
     public final int maxRubies = 999;
-    public final int maxHearts = 3;
+    public final int maxHearts = 6;
+    private int force;
+    private int attackRange;
+    private boolean isAttacking = false; // Ajouter un drapeau pour vérifier si le joueur attaque
+
+    public InputHandler inputHandler;
 
     public int getSpriteWidth() {
         return SPRITE_WIDTH;
@@ -30,14 +38,15 @@ public class Player extends Entity {
         return SPRITE_HEIGHT;
     }
 
-    public Player(GamePanel gPanel) {
+    public Player(GamePanel gPanel, InputHandler inputHandler) {
         super(gPanel);
         this.gPanel = gPanel;
+        this.inputHandler = inputHandler;
 
         screenX = GamePanel.getScreenWidth() / 2 - (GamePanel.getTileSize() / 2);
         screenY = GamePanel.getScreenHeight() / 2 - (GamePanel.getTileSize() / 2);
 
-        solidArea = new Rectangle(8, 50, 16, 16);
+        solidArea = new Rectangle(15, 48, 16, 16);
         solidAreaDefaultX = (int) solidArea.getX();
         solidAreaDefaultY = (int) solidArea.getY();
 
@@ -52,6 +61,8 @@ public class Player extends Entity {
         direction = "DOWN"; // Use uppercase for consistency
         rubies = 0;
         hearts = maxHearts;
+        force = 1;
+        attackRange = 1;
     }
 
     public void loadPlayerImages() {
@@ -67,10 +78,17 @@ public class Player extends Entity {
         handleInput(inputList);
         checkCollisions();
         interactWithEntities();
-        attackMonsters(); // Ajouter la vérification d'attaque
+        updateForceAndRange();
+        attackObjectsAndMonsters();
         updatePosition();
         updateSprite();
-        checkInventoryDisplay();
+        isAttacking = inputHandler.isAttackPressed(); // Mettre à jour l'état d'attaque du joueur
+    }
+
+    private void updateForceAndRange() {
+        boolean hasSword = inventory.getItems().stream().anyMatch(item -> item.name.equals("Sword"));
+        force = hasSword ? 3 : 1; // Force de base est 1, si l'épée est présente, force est 3
+        attackRange = hasSword ? 2 : 1; // Portée de base est 1, si l'épée est présente, portée est 2
     }
 
     private void handleInput(ArrayList<String> inputList) {
@@ -97,7 +115,7 @@ public class Player extends Entity {
     }
 
     private void interactWithEntities() {
-        if (gPanel.getInputHandler().isSpacePressed()) {
+        if (inputHandler.isSpacePressed()) {
             NPC npc = getFacingNPC();
             if (npc != null) {
                 interactWithNPC(npc);
@@ -105,12 +123,56 @@ public class Player extends Entity {
         }
     }
 
-    private void attackMonsters() {
-        if (gPanel.getInputHandler().isAttackPressed()) {
-            Monster monster = getFacingMonster();
-            if (monster != null) {
-                monster.receiveDamage(1); // Attaque le monstre avec 1 point de dégât
+    private void attackObjectsAndMonsters() {
+        if (inputHandler.isAttackPressed()) {
+            ArrayList<Monster> monstersToAttack = new ArrayList<>();
+            for (Monster monster : gPanel.monsters) {
+                if (isInAttackRange(monster)) {
+                    monstersToAttack.add(monster);
+                }
             }
+            for (Monster monster : monstersToAttack) {
+                if (monster.mapIndex == gPanel.currentMap) {
+                    monster.receiveDamage(force);
+                }
+            }
+        }
+    }
+
+    private boolean isInAttackRange(Monster monster) {
+        int playerLeftX = worldX;
+        int playerRightX = worldX + GamePanel.getTileSize();
+        int playerTopY = worldY;
+        int playerBottomY = worldY + GamePanel.getTileSize();
+
+        int monsterLeftX = monster.worldX;
+        int monsterRightX = monster.worldX + GamePanel.getTileSize();
+        int monsterTopY = monster.worldY;
+        int monsterBottomY = monster.worldY + GamePanel.getTileSize();
+
+        switch (direction) {
+            case "UP":
+                return playerTopY - attackRange * GamePanel.getTileSize() < monsterBottomY &&
+                        playerBottomY > monsterTopY &&
+                        playerRightX > monsterLeftX &&
+                        playerLeftX < monsterRightX;
+            case "DOWN":
+                return playerBottomY + attackRange * GamePanel.getTileSize() > monsterTopY &&
+                        playerTopY < monsterBottomY &&
+                        playerRightX > monsterLeftX &&
+                        playerLeftX < monsterRightX;
+            case "LEFT":
+                return playerLeftX - attackRange * GamePanel.getTileSize() < monsterRightX &&
+                        playerRightX > monsterLeftX &&
+                        playerBottomY > monsterTopY &&
+                        playerTopY < monsterBottomY;
+            case "RIGHT":
+                return playerRightX + attackRange * GamePanel.getTileSize() > monsterLeftX &&
+                        playerLeftX < monsterRightX &&
+                        playerBottomY > monsterTopY &&
+                        playerTopY < monsterBottomY;
+            default:
+                return false;
         }
     }
 
@@ -133,29 +195,10 @@ public class Player extends Entity {
         }
     }
 
-    private void checkInventoryDisplay() {
-        if (gPanel.getInputHandler().isIPressed()) {
-            if (inventory.getItems().isEmpty()) {
-                System.out.println("Inventaire vide");
-            } else {
-                inventory.displayInventory();
-            }
-        }
-    }
-
-    private NPC getFacingNPC() {
+    public NPC getFacingNPC() {
         for (NPC npc : gPanel.npcs) {
-            if (npc != null && isNear(npc) && isFacing(npc)) {
+            if (npc != null && isNear(npc)) {
                 return npc;
-            }
-        }
-        return null;
-    }
-
-    private Monster getFacingMonster() {
-        for (Monster monster : gPanel.monsters) {
-            if (monster != null && isNear(monster) && isFacing(monster)) {
-                return monster;
             }
         }
         return null;
@@ -175,26 +218,6 @@ public class Player extends Entity {
         return playerRightX > entityLeftX && playerLeftX < entityRightX && playerBottomY > entityTopY && playerTopY < entityBottomY;
     }
 
-    private boolean isFacing(Entity entity) {
-        int entityX = entity.worldX;
-        int entityY = entity.worldY;
-        int playerX = worldX;
-        int playerY = worldY;
-
-        switch (direction) {
-            case "UP":
-                return playerX + GamePanel.getTileSize() > entityX && playerX < entityX + GamePanel.getTileSize() && playerY > entityY;
-            case "DOWN":
-                return playerX + GamePanel.getTileSize() > entityX && playerX < entityX + GamePanel.getTileSize() && playerY < entityY;
-            case "LEFT":
-                return playerY + GamePanel.getTileSize() > entityY && playerY < entityY + GamePanel.getTileSize() * 1.5 && playerX > entityX;
-            case "RIGHT":
-                return playerY + GamePanel.getTileSize() > entityY && playerY < entityY + GamePanel.getTileSize() * 1.5 && playerX < entityX;
-            default:
-                return false;
-        }
-    }
-
     public void pickUpObject(int i) {
         if (i != 999) {
             SuperObject obj = gPanel.obj[i];
@@ -207,7 +230,12 @@ public class Player extends Entity {
     public void interactWithNPC(NPC npc) {
         if (npc != null) {
             String dialogue = npc.speak();
-            System.out.println(dialogue);
+            if (!dialogue.isEmpty()) {
+                gPanel.ui.setCurrentDialogue(dialogue);
+                gPanel.gameState = gPanel.dialogueState; // Passe le jeu en mode dialogue
+            } else {
+                gPanel.gameState = gPanel.playState; // Revenir en mode jeu si le dialogue est terminé
+            }
             // Example interaction: transfer an item from NPC to player
             if (!npc.inventory.getItems().isEmpty()) {
                 SuperObject item = npc.inventory.getItems().get(0);
@@ -219,6 +247,10 @@ public class Player extends Entity {
     }
 
     public void render(GraphicsContext gc) {
+        if (isAttacking) {
+            renderAttackRange(gc); // Afficher les cases d'attaque avant de dessiner le joueur
+        }
+
         Image image = null;
 
         switch (direction) {
@@ -239,6 +271,40 @@ public class Player extends Entity {
         if (image != null) {
             gc.drawImage(image, screenX, screenY, getSpriteWidth(), getSpriteHeight());
         }
+
+        // Draw the player's collision box
+        renderCollisionBox(gc);
+    }
+
+    private void renderAttackRange(GraphicsContext gc) {
+        gc.setFill(Color.rgb(255, 0, 0, 0.25)); // Rouge avec une opacité de 25%
+
+        for (int range = 1; range <= attackRange; range++) {
+            int attackX = screenX;
+            int attackY = screenY;
+
+            switch (direction) {
+                case "UP":
+                    attackY = screenY - GamePanel.getTileSize() * range;
+                    break;
+                case "DOWN":
+                    attackY = screenY + GamePanel.getTileSize() * range;
+                    break;
+                case "LEFT":
+                    attackX = screenX - GamePanel.getTileSize() * range;
+                    break;
+                case "RIGHT":
+                    attackX = screenX + GamePanel.getTileSize() * range;
+                    break;
+            }
+
+            gc.fillRect(attackX, attackY, GamePanel.getTileSize(), GamePanel.getTileSize());
+        }
+    }
+
+    private void renderCollisionBox(GraphicsContext gc) {
+        gc.setFill(Color.rgb(0, 255, 0, 0.25)); // Vert avec une opacité de 25%
+        gc.fillRect(screenX + solidArea.getX(), screenY + solidArea.getY(), solidArea.getWidth(), solidArea.getHeight());
     }
 
     public void addRuby(int amount) {
@@ -256,6 +322,7 @@ public class Player extends Entity {
         if (hearts == 0) {
             System.out.println("Game Over");
             gPanel.resetGame(); // Reset the game
+            resetStats(); // Réinitialise les statistiques et l'inventaire du joueur
         } else {
             System.out.println("Hearts: " + hearts);
         }
@@ -267,5 +334,73 @@ public class Player extends Entity {
 
     public int getHearts() {
         return hearts;
+    }
+    
+    public int getForce() {
+        return force;
+    }
+
+    public int getAttackRange() {
+        return attackRange;
+    }
+
+    public void addForce(int amount) {
+        force += amount;
+        System.out.println("Force: " + force);
+    }
+    
+    public void resetStats() {
+        setDefaultValues();
+        inventory.getItems().clear();
+    }
+
+    public void useItem(int index) {
+        if (index >= 0 && index < inventory.getItems().size()) {
+            SuperObject item = inventory.getItems().get(index);
+            if (item.use(gPanel)) {
+                inventory.removeItem(item);
+            }
+        }
+    }
+    public int getFacingObject(int range) {
+        int playerLeftX = worldX;
+        int playerRightX = worldX;
+        int playerTopY = worldY;
+        int playerBottomY = worldY;
+
+        switch (direction) {
+            case "UP":
+                playerTopY -= GamePanel.getTileSize() * range;
+                playerBottomY = playerTopY + GamePanel.getTileSize();
+                break;
+            case "DOWN":
+                playerBottomY += GamePanel.getTileSize() * range;
+                playerTopY = playerBottomY - GamePanel.getTileSize();
+                break;
+            case "LEFT":
+                playerLeftX -= GamePanel.getTileSize() * range;
+                playerRightX = playerLeftX + GamePanel.getTileSize();
+                break;
+            case "RIGHT":
+                playerRightX += GamePanel.getTileSize() * range;
+                playerLeftX = playerRightX - GamePanel.getTileSize();
+                break;
+        }
+
+        for (int i = 0; i < gPanel.obj.length; i++) {
+            SuperObject obj = gPanel.obj[i];
+            if (obj != null && obj.mapIndex == gPanel.currentMap) {
+                int objLeftX = obj.worldX;
+                int objRightX = obj.worldX + GamePanel.getTileSize();
+                int objTopY = obj.worldY;
+                int objBottomY = obj.worldY + GamePanel.getTileSize();
+
+                if (playerRightX > objLeftX && playerLeftX < objRightX &&
+                    playerBottomY > objTopY && playerTopY < objBottomY) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 }

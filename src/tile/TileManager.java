@@ -3,11 +3,9 @@ package tile;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import main.GamePanel;
-//import main.UtilityTool;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-//import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -17,26 +15,24 @@ public class TileManager {
     private int tileSize; // Taille des tuiles
     private GamePanel gPanel; // Référence à GamePanel
     private Tile[] tiles; // Tableau de tuiles
-    private int[][] mapTileNum; // Numéros des tuiles de la carte
+    private int[][][] mapTileNum; // Numéros des tuiles de la carte
     ArrayList<String> fileNames = new ArrayList<>();
     ArrayList<String> collisionStatus = new ArrayList<>();
-    
+
     public TileManager(GamePanel gPanel) {
         this.gPanel = gPanel;
         this.tileSize = GamePanel.getTileSize(); // Obtient la taille des tuiles depuis GamePanel
-        
-        
-        tiles = new Tile[200];
-        mapTileNum = new int[gPanel.WORLD_WIDTH][gPanel.WORLD_HEIGHT];
+
+        tiles = new Tile[300];
+        mapTileNum = new int[gPanel.maxMap][gPanel.WORLD_WIDTH][gPanel.WORLD_HEIGHT];
 
         loadTileImages();
-        loadMap("file:res/maps/spawn.txt"); // Assurez-vous que loadMap est appelé ici pour remplir mapTileNum
+        loadMaps(); // Charger toutes les cartes
     }
-
 
     private void loadTileImages() {
         try {
-        	setup(0, "image_part_001.png", true);
+        	setup(0, "image_part_001.png", false);
         	setup(1, "image_part_002.png", true);
         	setup(2, "image_part_003.png", true);
         	setup(3, "image_part_004.png", true);
@@ -221,6 +217,77 @@ public class TileManager {
         	setup(182, "image_part_183.png", true);
         	setup(183, "image_part_184.png", false);
         	setup(184, "image_part_185.png", true);
+        	setup(185, "image_part_186.png", true);
+        	setup(186, "image_part_187.png", true);
+        	setup(187, "image_part_188.png", true);
+        	setup(188, "image_part_189.png", true);
+        	setup(189, "image_part_190.png", true);
+        	setup(190, "image_part_191.png", true);
+        	setup(191, "image_part_192.png", true);
+        	setup(192, "image_part_193.png", true);
+        	setup(193, "image_part_194.png", true);
+        	setup(194, "image_part_195.png", true);
+        	setup(195, "image_part_196.png", true);
+        	setup(196, "image_part_197.png", true);
+        	setup(197, "image_part_198.png", true);
+        	setup(198, "image_part_199.png", true);
+        	setup(199, "image_part_200.png", true);
+        	setup(200, "image_part_201.png", true);
+        	setup(201, "image_part_202.png", true);
+        	setup(202, "image_part_203.png", true);
+        	setup(203, "image_part_204.png", true);
+        	setup(204, "image_part_205.png", true);
+        	setup(205, "image_part_206.png", true);
+        	setup(206, "image_part_207.png", true);
+        	setup(207, "image_part_208.png", true);
+        	setup(208, "image_part_209.png", true);
+        	setup(209, "image_part_210.png", true);
+        	setup(210, "image_part_211.png", true);
+        	setup(211, "image_part_212.png", false);
+        	setup(212, "image_part_213.png", false);
+        	setup(213, "image_part_214.png", true);
+        	setup(214, "image_part_215.png", true);
+        	setup(215, "image_part_216.png", true);
+        	setup(216, "image_part_217.png", false);
+        	setup(217, "image_part_218.png", true);
+        	setup(218, "image_part_219.png", true);
+        	setup(219, "image_part_220.png", true);
+        	setup(220, "image_part_221.png", true);
+        	setup(221, "image_part_222.png", true);
+        	setup(222, "image_part_223.png", true);
+        	setup(223, "image_part_224.png", true);
+        	setup(224, "image_part_225.png", true);
+        	setup(225, "image_part_226.png", true);
+        	setup(226, "image_part_227.png", true);
+        	setup(227, "image_part_228.png", true);
+        	setup(228, "image_part_229.png", true);
+        	setup(229, "image_part_230.png", true);
+        	setup(230, "image_part_231.png", true);
+        	setup(231, "image_part_232.png", true);
+        	setup(232, "image_part_233.png", true);
+        	setup(233, "image_part_234.png", true);
+        	setup(234, "image_part_235.png", true);
+        	setup(235, "image_part_236.png", true);
+        	setup(236, "image_part_237.png", true);
+        	setup(237, "image_part_238.png", true);
+        	setup(238, "image_part_239.png", true);
+        	setup(239, "image_part_240.png", true);
+        	setup(240, "image_part_241.png", true);
+        	setup(241, "image_part_242.png", true);
+        	setup(242, "image_part_243.png", true);
+        	setup(243, "image_part_244.png", true);
+        	setup(244, "image_part_245.png", true);
+        	setup(245, "image_part_246.png", true);
+        	setup(246, "image_part_247.png", false);
+        	setup(247, "image_part_248.png", false);
+        	setup(248, "image_part_249.png", true);
+        	setup(249, "image_part_250.png", true);
+        	setup(250, "image_part_251.png", true);
+        	setup(251, "image_part_252.png", true);
+        	setup(252, "image_part_253.png", true);
+        	setup(253, "image_part_254.png", false);
+        	setup(254, "image_part_255.png", false);
+        	setup(255, "image_part_256.png", true);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -228,31 +295,31 @@ public class TileManager {
     }
 
     private void setup(int index, String imagePath, boolean collision) {
-    	
-    	
-    	try {
-    		getTiles()[index] = new Tile(new Image("file:res/zeldatile/"+ imagePath), collision);
-    		
-    	}catch(Exception e) {
-    		e.printStackTrace();
-    	}
-    }
-    
-    private void loadMap(String fileName) {
         try {
-        	InputStream is = new FileInputStream("res/maps/spawn.txt"); // Chemin relatif pour accéder au fichier
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            tiles[index] = new Tile(new Image("file:res/zeldatile/" + imagePath), collision);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-            setMapTileNum(new int[gPanel.WORLD_WIDTH][gPanel.WORLD_HEIGHT]);
+    private void loadMaps() {
+    	loadMap("res/maps/spawn.txt",0);
+    	loadMap("res/maps/house.txt",1);
+    }
+
+    private void loadMap(String fileName, int mapIndex) {
+        try {
+            InputStream is = new FileInputStream(fileName); // Chemin relatif pour accéder au fichier
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             String line;
             int row = 0;
-            
+
             while ((line = br.readLine()) != null && row < gPanel.WORLD_HEIGHT) {
                 String[] numbers = line.trim().split("\\s+"); // Séparation des nombres par des espaces
                 for (int col = 0; col < gPanel.WORLD_WIDTH && col < numbers.length; col++) {
                     int num = Integer.parseInt(numbers[col]);
-                    getMapTileNum()[col][row] = num;
+                    mapTileNum[mapIndex][col][row] = num;
                 }
                 row++;
             }
@@ -266,30 +333,30 @@ public class TileManager {
     public void render(GraphicsContext gc) {
         for (int col = 0; col < gPanel.WORLD_WIDTH; col++) {
             for (int row = 0; row < gPanel.WORLD_HEIGHT; row++) {
-                int tileNum = getMapTileNum()[col][row];
+                int tileNum = mapTileNum[gPanel.currentMap][col][row];
                 int screenX = col * tileSize - gPanel.player.worldX + gPanel.player.screenX;
                 int screenY = row * tileSize - gPanel.player.worldY + gPanel.player.screenY;
 
                 if (screenX + tileSize > 0 && screenX < gPanel.getWidth() && screenY + tileSize > 0 && screenY < gPanel.getHeight()) {
-                    gc.drawImage(getTiles()[tileNum].getImage(), screenX, screenY, tileSize, tileSize);
+                    gc.drawImage(tiles[tileNum].getImage(), screenX, screenY, tileSize, tileSize);
                 }
             }
         }
     }
 
-	public int[][] getMapTileNum() {
-		return mapTileNum;
-	}
+    public int[][][] getMapTileNum() {
+        return mapTileNum;
+    }
 
-	public void setMapTileNum(int[][] mapTileNum) {
-		this.mapTileNum = mapTileNum;
-	}
+    public void setMapTileNum(int[][][] mapTileNum) {
+        this.mapTileNum = mapTileNum;
+    }
 
-	public Tile[] getTiles() {
-		return tiles;
-	}
+    public Tile[] getTiles() {
+        return tiles;
+    }
 
-	public void setTiles(Tile[] tiles) {
-		this.tiles = tiles;
-	}
+    public void setTiles(Tile[] tiles) {
+        this.tiles = tiles;
+    }
 }

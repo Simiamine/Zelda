@@ -15,9 +15,10 @@ public class SuperObject {
     public Rectangle solidArea = new Rectangle(0, 0, GamePanel.TILE_SIZE, GamePanel.TILE_SIZE);
     public int solidAreaDefaultX = 0;
     public int solidAreaDefaultY = 0;
+    public String description;
+	public int mapIndex;
 
     public void render(GraphicsContext gc, GamePanel gPanel) {
-
         int screenX = worldX - gPanel.player.worldX + gPanel.player.screenX;
         int screenY = worldY - gPanel.player.worldY + gPanel.player.screenY;
 
@@ -28,9 +29,16 @@ public class SuperObject {
                 gc.drawImage(image, screenX, screenY, GamePanel.getTileSize(), GamePanel.getTileSize());
         }
     }
-    
+
     public boolean interact(GamePanel gPanel) {
-        // Par défaut, ne pas retirer l'objet
         return false;
+    }
+
+    public int getAttackRange() {
+        return 1; // Valeur par défaut de la portée d'attaque
+    }
+
+    public boolean use(GamePanel gPanel) {
+    	return false;
     }
 }

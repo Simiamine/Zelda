@@ -7,6 +7,7 @@ public class OBJ_Ruby extends SuperObject {
 
     public OBJ_Ruby() {
         name = "Ruby";
+        description = "[" + name + "]";
         try {
             image = new Image("file:res/objects/ruby.png"); // Assurez-vous que l'image existe à cet emplacement
         } catch (Exception e) {
@@ -17,7 +18,7 @@ public class OBJ_Ruby extends SuperObject {
     @Override
     public boolean interact(GamePanel gPanel) {
         // Ajouter des rubis au joueur
-        gPanel.player.addRuby(1);
+        gPanel.player.addRuby(20);
         return true;
     }
 }

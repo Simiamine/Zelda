@@ -2,6 +2,7 @@ package entity;
 
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import main.GamePanel;
 import object.OBJ_Heart;
@@ -10,56 +11,40 @@ import object.SuperObject;
 
 import java.util.Random;
 
-public class Monster extends Entity {
+public abstract class Monster extends Entity {
 
-    // Points de vie du monstre
-    private int health;
-    
-    // Image représentant le monstre
-    private Image monsterImage;
+    protected int health;
+    protected int maxHealth;
+    protected Image monsterImage;
+    protected int attackCooldown;
+    protected int attackCooldownCounter;
 
-    // Constructeur de la classe Monster
     public Monster(GamePanel gPanel) {
         super(gPanel);
-
-        // Initialisation des propriétés du monstre
         direction = "DOWN";
         speed = 1;
-        health = 30; // Le monstre commence avec 30 points de vie
+        health = maxHealth = 30;
 
-        // Initialisation de la zone solide
         int tileSize = GamePanel.getTileSize();
         solidArea = new Rectangle(0, 0, tileSize, tileSize);
         solidAreaDefaultX = 0;
         solidAreaDefaultY = 0;
-        collisionOn = true; // Collision activée par défaut
-        isSolid = true; // Le monstre est solide par défaut
+        collisionOn = true;
+        isSolid = true;
 
-        // Chargement de l'image du monstre
-        getImage();
+        attackCooldown = 120;
+        attackCooldownCounter = 0;
     }
 
-    // Méthode pour charger l'image du monstre
-    private void getImage() {
-        try {
-            monsterImage = new Image("file:res/monster/monster.png"); // Assurez-vous que l'image existe à cet emplacement
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Méthode pour recevoir des dégâts
     public void receiveDamage(int damage) {
         health -= damage;
         if (health <= 0) {
             dropItem();
-            // Retirer le monstre du monde du jeu
             gPanel.monsters.remove(this);
         }
     }
 
-    // Méthode pour faire tomber un objet lorsque le monstre est vaincu
-    private void dropItem() {
+    public void dropItem() {
         Random rand = new Random();
         SuperObject drop;
 
@@ -69,42 +54,75 @@ public class Monster extends Entity {
             drop = new OBJ_Heart();
         }
 
-        // Positionner l'objet à l'endroit où le monstre a été vaincu
         drop.worldX = worldX;
         drop.worldY = worldY;
 
-        // Ajouter l'objet au monde du jeu
         int index = gPanel.findEmptyObjectIndex();
         if (index != -1) {
             gPanel.obj[index] = drop;
         } else {
-            // Si aucun emplacement vide n'est trouvé, agrandir le tableau
             gPanel.obj = expandArray(gPanel.obj);
             gPanel.obj[gPanel.obj.length - 1] = drop;
         }
     }
 
-    // Méthode pour agrandir le tableau d'objets
-    private SuperObject[] expandArray(SuperObject[] array) {
+    protected SuperObject[] expandArray(SuperObject[] array) {
         SuperObject[] newArray = new SuperObject[array.length + 1];
         System.arraycopy(array, 0, newArray, 0, array.length);
         return newArray;
     }
 
-    // Méthode pour mettre à jour l'état du monstre (à compléter si nécessaire)
     public void update() {
-        // Ajouter la logique de mouvement si nécessaire
+        if (attackCooldownCounter > 0) {
+            attackCooldownCounter--;
+        }
+        move();
+        checkPlayerCollision(gPanel.player);
     }
 
-    // Méthode pour dessiner le monstre à l'écran
+    protected abstract void move();
+
+    public void checkPlayerCollision(Player player) {
+        if (isNear(player) && attackCooldownCounter == 0) {
+            player.takeDamage(1);
+            attackCooldownCounter = attackCooldown;
+        }
+    }
+
+    protected boolean isNear(Entity entity) {
+        int monsterLeftX = worldX;
+        int monsterRightX = worldX + GamePanel.getTileSize();
+        int monsterTopY = worldY;
+        int monsterBottomY = worldY + GamePanel.getTileSize();
+
+        int entityLeftX = entity.worldX;
+        int entityRightX = entity.worldX + GamePanel.getTileSize();
+        int entityTopY = entity.worldY;
+        int entityBottomY = entity.worldY + GamePanel.getTileSize();
+
+        return monsterRightX > entityLeftX && monsterLeftX < entityRightX && monsterBottomY > entityTopY && monsterTopY < entityBottomY;
+    }
+
+    public abstract void getImage();
+
     public void render(GraphicsContext gc) {
-        // Calculer les coordonnées de l'écran en fonction de la position du joueur
         int screenX = worldX - gPanel.player.worldX + gPanel.player.screenX;
         int screenY = worldY - gPanel.player.worldY + gPanel.player.screenY;
 
-        // Dessiner l'image du monstre si elle est chargée
         if (monsterImage != null) {
             gc.drawImage(monsterImage, screenX, screenY, GamePanel.getTileSize(), GamePanel.getTileSize());
         }
+
+        renderHealthBar(gc, screenX, screenY);
+    }
+
+    private void renderHealthBar(GraphicsContext gc, int screenX, int screenY) {
+        double healthBarWidth = GamePanel.getTileSize() * (health / (double) maxHealth);
+
+        gc.setFill(Color.RED);
+        gc.fillRect(screenX, screenY - 10, GamePanel.getTileSize(), 5); // Background (empty health bar)
+
+        gc.setFill(Color.BLUE);
+        gc.fillRect(screenX, screenY - 10, healthBarWidth, 5); // Foreground (current health)
     }
 }
