@@ -2,6 +2,8 @@ package entity;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import object.OBJ_Bomb;
+import object.SuperObject;
 
 import java.util.Random;
 
@@ -13,6 +15,9 @@ public class Monster_Goron extends Monster {
         speed = 1;
         health = 30;
         getImage();
+
+        // Ajouter une bombe à l'inventaire du Goron
+        inventory.addItem(new OBJ_Bomb());
     }
 
     @Override
@@ -48,6 +53,22 @@ public class Monster_Goron extends Monster {
             }
 
             actionLockCounter = 0;
+        }
+    }
+
+    @Override
+    public void update() {
+        super.update();
+        if (health < 15 && !inventory.getItems().isEmpty()) {
+            useBomb();
+        }
+    }
+
+    private void useBomb() {
+        // Utiliser la première bombe de l'inventaire
+        SuperObject bomb = inventory.getItems().stream().filter(item -> item instanceof OBJ_Bomb).findFirst().orElse(null);
+        if (bomb != null && bomb.use(gPanel, this)) {
+            inventory.removeItem(bomb);
         }
     }
 }

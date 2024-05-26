@@ -1,5 +1,6 @@
 package main;
 
+//import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
 import java.util.ArrayList;
@@ -96,6 +97,16 @@ public class InputHandler implements EventHandler<KeyEvent> {
             case T:
                 showTextDebug = !showTextDebug;
                 break;
+//            case R:
+//                if (gPanel.gameState == gPanel.dialogueState) {
+//                    gPanel.resetGame();
+//                }
+//                break;
+//            case Q:
+//                if (gPanel.gameState == gPanel.dialogueState) {
+//                    Platform.exit();
+//                }
+//                break;
             default:
                 break;
         }

@@ -39,6 +39,7 @@ public class OBJ_Door extends SuperObject {
         } else {
             System.out.println("Vous avez ouvert la porte.");
              // La porte ne bloque plus le passage
+            gPanel.removeObject(this);
             return true;
         }
     }

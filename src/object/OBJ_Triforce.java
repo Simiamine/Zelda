@@ -1,5 +1,6 @@
 package object;
 
+import entity.Entity;
 import javafx.scene.image.Image;
 import main.GamePanel;
 
@@ -24,7 +25,7 @@ public class OBJ_Triforce extends SuperObject {
     }
 
     @Override
-    public boolean use(GamePanel gPanel) {
+    public boolean use(GamePanel gPanel, Entity user) {
         // Activer la condition de victoire
         gPanel.setVictoryCondition();
         System.out.println("Victoire activée !");

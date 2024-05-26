@@ -1,5 +1,6 @@
 package object;
 
+import entity.Entity;
 import javafx.scene.image.Image;
 import main.GamePanel;
 
@@ -23,8 +24,7 @@ public class OBJ_Exterminator extends SuperObject {
     }
 
     @Override
-    public boolean use(GamePanel gPanel) {
-        // Logique pour tuer tous les monstres de la carte
+    public boolean use(GamePanel gPanel, Entity user) {
         int currentMap = gPanel.currentMap;
         gPanel.monsters.removeIf(monster -> monster.mapIndex == currentMap);
         System.out.println("Tous les monstres de la carte ont été exterminés !");

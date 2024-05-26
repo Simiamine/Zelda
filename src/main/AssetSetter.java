@@ -7,6 +7,7 @@ import object.OBJ_Grass;
 import object.OBJ_Stone;
 import object.OBJ_Triforce;
 import object.SuperObject;
+import object.OBJ_Bomb;
 import object.OBJ_Chest;
 import object.OBJ_Door;
 import object.OBJ_Exterminator;
@@ -175,7 +176,9 @@ public class AssetSetter {
     	initObjectexact(OBJ_Door.class, 184*3, 256*3, 0);
 
     	initObject(OBJ_Exterminator.class, 10, 10, 0);
-        
+    	
+    	
+    	initObject(OBJ_Bomb.class, 9, 9, 0);
 
         
         

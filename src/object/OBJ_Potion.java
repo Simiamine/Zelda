@@ -1,5 +1,6 @@
 package object;
 
+import entity.Entity;
 import javafx.scene.image.Image;
 import main.GamePanel;
 
@@ -23,11 +24,11 @@ public class OBJ_Potion extends SuperObject {
     }
 
     @Override
-    public boolean use(GamePanel gPanel) {
-    	if (gPanel.player.getHearts()==gPanel.player.maxHearts) {
-    		return false;
-    	}
-        System.out.println("Using potion!");
+    public boolean use(GamePanel gPanel, Entity user) {
+        if (gPanel.player.getHearts() == gPanel.player.maxHearts) {
+            return false;
+        }
+        System.out.println("Utilisation de la potion !");
         gPanel.player.addHeart(3); // Potion redonne 3 points de vie
         return true;
     }

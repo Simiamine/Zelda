@@ -1,5 +1,6 @@
 package object;
 
+import entity.Entity;
 import javafx.scene.image.Image;
 import main.GamePanel;
 
@@ -22,7 +23,7 @@ public class OBJ_Key extends SuperObject {
     }
 
     @Override
-    public boolean use(GamePanel gPanel) {
+    public boolean use(GamePanel gPanel, Entity user) {
         int doorIndex = gPanel.player.getFacingObject(1);
         if (doorIndex != -1) {
             SuperObject obj = gPanel.obj[doorIndex];

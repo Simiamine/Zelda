@@ -182,6 +182,14 @@ public class GamePanel extends Canvas {
         }
         return -1;
     }
+    public void removeObject(SuperObject obj) {
+        for (int i = 0; i < this.obj.length; i++) {
+            if (this.obj[i] == obj) {
+                this.obj[i] = null;
+                break;
+            }
+        }
+    }
 
     public void resetGame() {
         player.setDefaultValues();
@@ -202,6 +210,7 @@ public class GamePanel extends Canvas {
             gameState = dialogueState;
             ui.currentDialogue = "Congratulations! You have obtained the Triforce!";
             ui.drawDialogueScreen();
+            
         }
     }
 
@@ -212,8 +221,8 @@ public class GamePanel extends Canvas {
         }
     }
     private void setupTeleportationSquares() {
-        event.addTeleportationSquare(1, 6, 10, 1, 1, 0, 11, 17);
-        event.addTeleportationSquare(0, 11, 15, 1, 1, 1, 6, 9);
+        event.addTeleportationSquare(1, 6, 9, 2, 1, 0, 11, 17);
+        event.addTeleportationSquare(0, 11, 15, 2, 1, 1, 6, 9);
 
     }
 }

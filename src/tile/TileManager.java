@@ -2,6 +2,7 @@ package tile;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import main.GamePanel;
 
 import java.io.BufferedReader;
@@ -32,7 +33,7 @@ public class TileManager {
 
     private void loadTileImages() {
         try {
-        	setup(0, "image_part_001.png", false);
+        	setup(0, "image_part_001.png", true);
         	setup(1, "image_part_002.png", true);
         	setup(2, "image_part_003.png", true);
         	setup(3, "image_part_004.png", true);
@@ -73,13 +74,13 @@ public class TileManager {
         	setup(38, "image_part_039.png", true);
         	setup(39, "image_part_040.png", true);
         	setup(40, "image_part_041.png", false);
-        	setup(41, "image_part_042.png", false);
-        	setup(42, "image_part_043.png", false);
-        	setup(43, "image_part_044.png", false);
-        	setup(44, "image_part_045.png", false);
-        	setup(45, "image_part_046.png", false);
-        	setup(46, "image_part_047.png", false);
-        	setup(47, "image_part_048.png", false);
+        	setup(41, "image_part_042.png", true);
+        	setup(42, "image_part_043.png", true);
+        	setup(43, "image_part_044.png", true);
+        	setup(44, "image_part_045.png", true);
+        	setup(45, "image_part_046.png", true);
+        	setup(46, "image_part_047.png", true);
+        	setup(47, "image_part_048.png", true);
         	setup(48, "image_part_049.png", false);
         	setup(49, "image_part_050.png", false);
         	setup(50, "image_part_051.png", false);
@@ -161,7 +162,7 @@ public class TileManager {
         	setup(126, "image_part_127.png", true);
         	setup(127, "image_part_128.png", true);
         	setup(128, "image_part_129.png", true);
-        	setup(129, "image_part_130.png", true);
+        	setup(129, "image_part_130.png", false);
         	setup(130, "image_part_131.png", false);
         	setup(131, "image_part_132.png", true);
         	setup(132, "image_part_133.png", true);
@@ -339,6 +340,10 @@ public class TileManager {
 
                 if (screenX + tileSize > 0 && screenX < gPanel.getWidth() && screenY + tileSize > 0 && screenY < gPanel.getHeight()) {
                     gc.drawImage(tiles[tileNum].getImage(), screenX, screenY, tileSize, tileSize);
+                    if (tiles[tileNum].collision) {
+                        gc.setFill(Color.rgb(255, 0, 255, 0.25)); // Rose avec une opacité de 25%
+                        gc.fillRect(screenX, screenY, tileSize, tileSize);
+                    }
                 }
             }
         }

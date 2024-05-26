@@ -216,6 +216,54 @@ public class UI {
         return wrappedText.toString();
     }
     
+    public void drawVictoryScreen() {
+        gc.setFill(Color.BLACK);
+        gc.fillRect(0, 0, GamePanel.SCREEN_WIDTH, GamePanel.SCREEN_HEIGHT);
+
+        String victoryMessage = "Congratulations! You have obtained the Triforce!";
+        Font font = Font.loadFont("file:res/font/font.ttf", 30);
+        gc.setFont(font);
+        gc.setFill(Color.WHITE);
+
+        // Use Text object to calculate the width of the string
+        Text text = new Text(victoryMessage);
+        text.setFont(font);
+        double textWidth = text.getLayoutBounds().getWidth();
+
+        // Calculate position to center the text
+        int x = (GamePanel.SCREEN_WIDTH - (int) textWidth) / 2;
+        int y = GamePanel.SCREEN_HEIGHT / 2;
+
+        gc.fillText(victoryMessage, x, y);
+    }
+    
+    public void showEndOptions() {
+        gc.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        gc.setFill(Color.WHITE);
+
+        String replayOption = "Press R to Replay";
+        String quitOption = "Press Q to Quit";
+
+        // Use Text object to calculate the width of the strings
+        Text replayText = new Text(replayOption);
+        replayText.setFont(gc.getFont());
+        double replayTextWidth = replayText.getLayoutBounds().getWidth();
+
+        Text quitText = new Text(quitOption);
+        quitText.setFont(gc.getFont());
+        double quitTextWidth = quitText.getLayoutBounds().getWidth();
+
+        // Calculate positions to center the texts
+        int xReplay = (GamePanel.SCREEN_WIDTH - (int) replayTextWidth) / 2;
+        int y = GamePanel.SCREEN_HEIGHT / 2 + 50;
+
+        int xQuit = (GamePanel.SCREEN_WIDTH - (int) quitTextWidth) / 2;
+
+        gc.fillText(replayOption, xReplay, y);
+        gc.fillText(quitOption, xQuit, y + 30);
+    }
+
+
     public void drawSubWindow(int x, int y, int width, int height) {
         
         Color color = Color.rgb(0, 0, 0, 0.80);

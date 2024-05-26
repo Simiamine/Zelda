@@ -1,5 +1,6 @@
 package object;
 
+import entity.Entity;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.shape.Rectangle;
@@ -38,7 +39,7 @@ public class SuperObject {
         return 1; // Valeur par défaut de la portée d'attaque
     }
 
-    public boolean use(GamePanel gPanel) {
+    public boolean use(GamePanel gPanel, Entity user) {
     	return false;
     }
 }

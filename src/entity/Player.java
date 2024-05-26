@@ -46,7 +46,7 @@ public class Player extends Entity {
         screenX = GamePanel.getScreenWidth() / 2 - (GamePanel.getTileSize() / 2);
         screenY = GamePanel.getScreenHeight() / 2 - (GamePanel.getTileSize() / 2);
 
-        solidArea = new Rectangle(15, 48, 16, 16);
+        solidArea = new Rectangle(12,40,24,24);
         solidAreaDefaultX = (int) solidArea.getX();
         solidAreaDefaultY = (int) solidArea.getY();
 
@@ -357,7 +357,7 @@ public class Player extends Entity {
     public void useItem(int index) {
         if (index >= 0 && index < inventory.getItems().size()) {
             SuperObject item = inventory.getItems().get(index);
-            if (item.use(gPanel)) {
+            if (item.use(gPanel, this)) {
                 inventory.removeItem(item);
             }
         }
