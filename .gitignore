@@ -1,0 +1,34 @@
+# === Java & Compilés ===
+bin/
+*.class
+
+# === IDE et éditeurs ===
+.vscode/
+*.iml
+.idea/
+*.log
+*.swp
+*.swo
+
+# === Build et dépendances ===
+*.jar
+*.war
+*.ear
+build/
+out/
+target/
+*.dll
+*.so
+*.dylib
+*.exe
+
+# === Systèmes d'exploitation ===
+.DS_Store
+Thumbs.db
+*.bak
+
+# === JavaFX SDK (si téléchargé localement) ===
+javafx-sdk-*/
+
+# === Git fichiers ===
+*.orig
