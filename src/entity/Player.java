@@ -33,6 +33,8 @@ public class Player extends Entity {
     private int force;
     private int attackRange;
     private boolean isAttacking = false;
+    private int attackCooldownCounter = 0;
+    private int attackAnimationCounter = 0;
 
     private InputHandler inputHandler;
 
@@ -96,10 +98,32 @@ public class Player extends Entity {
         checkCollisions();
         interactWithEntities();
         updateForceAndRange();
+        updateAttackState();
         attackObjectsAndMonsters();
         updatePosition();
         updateSprite();
-        isAttacking = inputHandler.isAttackPressed(); // Mettre à jour l'état d'attaque du joueur
+    }
+    
+    private void updateAttackState() {
+        // Décrémenter le cooldown
+        if (attackCooldownCounter > 0) {
+            attackCooldownCounter--;
+        }
+        
+        // Gérer l'animation d'attaque
+        if (isAttacking) {
+            attackAnimationCounter--;
+            if (attackAnimationCounter <= 0) {
+                isAttacking = false;
+            }
+        }
+        
+        // Démarrer une nouvelle attaque si le cooldown est fini
+        if (inputHandler.isAttackPressed() && attackCooldownCounter == 0 && !isAttacking) {
+            isAttacking = true;
+            attackCooldownCounter = GameConstants.PLAYER_ATTACK_COOLDOWN;
+            attackAnimationCounter = GameConstants.PLAYER_ATTACK_DURATION;
+        }
     }
 
     private void updateForceAndRange() {
@@ -146,19 +170,90 @@ public class Player extends Entity {
     }
 
     private void attackObjectsAndMonsters() {
-        if (inputHandler.isAttackPressed()) {
-            ArrayList<Monster> monstersToAttack = new ArrayList<>();
-            for (Monster monster : gPanel.getMonsters()) {
-                if (isInAttackRange(monster)) {
-                    monstersToAttack.add(monster);
+        // Attaquer seulement pendant l'animation d'attaque
+        if (!isAttacking) {
+            return;
+        }
+        
+        // Vérifier si le joueur a l'épée
+        boolean hasSword = inventory.containsItem("Sword");
+        
+        // Attaquer les monstres
+        ArrayList<Monster> monstersToAttack = new ArrayList<>();
+        for (Monster monster : gPanel.getMonsters()) {
+            if (isInAttackRange(monster)) {
+                monstersToAttack.add(monster);
+            }
+        }
+        for (Monster monster : monstersToAttack) {
+            if (monster.mapIndex == gPanel.getCurrentMap()) {
+                monster.receiveDamage(force);
+                LOGGER.fine("Attaque infligée au monstre : " + force + " dégâts");
+            }
+        }
+        
+        // Détruire l'herbe automatiquement avec l'épée (une seule fois par attaque)
+        if (hasSword && attackAnimationCounter == GameConstants.PLAYER_ATTACK_DURATION - 1) {
+            destroyGrassInRange();
+        }
+    }
+    
+    /**
+     * Détruit automatiquement l'herbe dans la portée de l'épée
+     */
+    private void destroyGrassInRange() {
+        SuperObject[] objects = gPanel.getObjects();
+        for (int i = 0; i < objects.length; i++) {
+            SuperObject obj = objects[i];
+            if (obj != null && obj.name.equals("Grass") && obj.mapIndex == gPanel.getCurrentMap()) {
+                if (isObjectInAttackRange(obj)) {
+                    // Simuler l'interaction de l'herbe
+                    if (obj.interact(gPanel)) {
+                        gPanel.setObject(i, null);  // Supprimer l'herbe
+                        LOGGER.fine("Herbe détruite par l'épée");
+                    }
                 }
             }
-            for (Monster monster : monstersToAttack) {
-                if (monster.mapIndex == gPanel.getCurrentMap()) {
-                    monster.receiveDamage(force);
-                    LOGGER.fine("Attaque infligée au monstre : " + force + " dégâts");
-                }
-            }
+        }
+    }
+    
+    /**
+     * Vérifie si un objet est dans la portée d'attaque
+     */
+    private boolean isObjectInAttackRange(SuperObject obj) {
+        int playerLeftX = worldX;
+        int playerRightX = worldX + GameConstants.TILE_SIZE;
+        int playerTopY = worldY;
+        int playerBottomY = worldY + GameConstants.TILE_SIZE;
+
+        int objLeftX = obj.worldX;
+        int objRightX = obj.worldX + GameConstants.TILE_SIZE;
+        int objTopY = obj.worldY;
+        int objBottomY = obj.worldY + GameConstants.TILE_SIZE;
+
+        switch (direction) {
+            case GameConstants.DIRECTION_UP:
+                return playerTopY - attackRange * GameConstants.TILE_SIZE < objBottomY &&
+                        playerBottomY > objTopY &&
+                        playerRightX > objLeftX &&
+                        playerLeftX < objRightX;
+            case GameConstants.DIRECTION_DOWN:
+                return playerBottomY + attackRange * GameConstants.TILE_SIZE > objTopY &&
+                        playerTopY < objBottomY &&
+                        playerRightX > objLeftX &&
+                        playerLeftX < objRightX;
+            case GameConstants.DIRECTION_LEFT:
+                return playerLeftX - attackRange * GameConstants.TILE_SIZE < objRightX &&
+                        playerRightX > objLeftX &&
+                        playerBottomY > objTopY &&
+                        playerTopY < objBottomY;
+            case GameConstants.DIRECTION_RIGHT:
+                return playerRightX + attackRange * GameConstants.TILE_SIZE > objLeftX &&
+                        playerLeftX < objRightX &&
+                        playerBottomY > objTopY &&
+                        playerTopY < objBottomY;
+            default:
+                return false;
         }
     }
 
@@ -349,6 +444,10 @@ public class Player extends Entity {
 
     public int getAttackRange() {
         return attackRange;
+    }
+    
+    public boolean isAttacking() {
+        return isAttacking;
     }
 
     public void addForce(int amount) {

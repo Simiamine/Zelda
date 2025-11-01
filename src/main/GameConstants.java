@@ -31,11 +31,13 @@ public final class GameConstants {
     // ==================== JOUEUR ====================
     public static final int PLAYER_MAX_RUBIES = 999;
     public static final int PLAYER_MAX_HEARTS = 6;
-    public static final int PLAYER_DEFAULT_SPEED = 10;
+    public static final int PLAYER_DEFAULT_SPEED = 6;  // Réduit de 10 à 6 pour meilleur gameplay
     public static final int PLAYER_DEFAULT_FORCE = 1;
     public static final int PLAYER_DEFAULT_ATTACK_RANGE = 1;
     public static final int PLAYER_SWORD_FORCE = 3;
     public static final int PLAYER_SWORD_ATTACK_RANGE = 2;
+    public static final int PLAYER_ATTACK_COOLDOWN = 15;  // Frames entre chaque attaque
+    public static final int PLAYER_ATTACK_DURATION = 10;  // Durée de l'animation d'attaque
     public static final int PLAYER_SPRITE_WIDTH = SCALE * 16;
     public static final int PLAYER_SPRITE_HEIGHT = SCALE * 24;
     
