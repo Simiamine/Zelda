@@ -2,6 +2,7 @@ package entity;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 import object.OBJ_Sword;
 
 public class NPC_Old extends NPC {

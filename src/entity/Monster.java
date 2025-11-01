@@ -5,6 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import main.GamePanel;
+import main.GameConstants;
 import object.OBJ_Heart;
 import object.OBJ_Ruby;
 import object.SuperObject;
@@ -25,7 +26,7 @@ public abstract class Monster extends Entity {
         speed = 1;
         health = maxHealth = 30;
 
-        int tileSize = GamePanel.getTileSize();
+        int tileSize = GameConstants.TILE_SIZE;
         solidArea = new Rectangle(0, 0, tileSize, tileSize);
         solidAreaDefaultX = 0;
         solidAreaDefaultY = 0;
@@ -40,7 +41,7 @@ public abstract class Monster extends Entity {
         health -= damage;
         if (health <= 0) {
             dropItem();
-            gPanel.monsters.remove(this);
+            gPanel.removeMonster(this);
         }
     }
 
@@ -58,18 +59,9 @@ public abstract class Monster extends Entity {
         drop.worldY = worldY;
 
         int index = gPanel.findEmptyObjectIndex();
-        if (index != -1) {
-            gPanel.obj[index] = drop;
-        } else {
-            gPanel.obj = expandArray(gPanel.obj);
-            gPanel.obj[gPanel.obj.length - 1] = drop;
+        if (index != GameConstants.NO_OBJECT_FOUND) {
+            gPanel.setObject(index, drop);
         }
-    }
-
-    protected SuperObject[] expandArray(SuperObject[] array) {
-        SuperObject[] newArray = new SuperObject[array.length + 1];
-        System.arraycopy(array, 0, newArray, 0, array.length);
-        return newArray;
     }
 
     public void update() {
@@ -77,7 +69,7 @@ public abstract class Monster extends Entity {
             attackCooldownCounter--;
         }
         move();
-        checkPlayerCollision(gPanel.player);
+        checkPlayerCollision(gPanel.getPlayer());
     }
 
     protected abstract void move();
@@ -91,14 +83,14 @@ public abstract class Monster extends Entity {
 
     protected boolean isNear(Entity entity) {
         int monsterLeftX = worldX;
-        int monsterRightX = worldX + GamePanel.getTileSize();
+        int monsterRightX = worldX + GameConstants.TILE_SIZE;
         int monsterTopY = worldY;
-        int monsterBottomY = worldY + GamePanel.getTileSize();
+        int monsterBottomY = worldY + GameConstants.TILE_SIZE;
 
         int entityLeftX = entity.worldX;
-        int entityRightX = entity.worldX + GamePanel.getTileSize();
+        int entityRightX = entity.worldX + GameConstants.TILE_SIZE;
         int entityTopY = entity.worldY;
-        int entityBottomY = entity.worldY + GamePanel.getTileSize();
+        int entityBottomY = entity.worldY + GameConstants.TILE_SIZE;
 
         return monsterRightX > entityLeftX && monsterLeftX < entityRightX && monsterBottomY > entityTopY && monsterTopY < entityBottomY;
     }
@@ -106,21 +98,21 @@ public abstract class Monster extends Entity {
     public abstract void getImage();
 
     public void render(GraphicsContext gc) {
-        int screenX = worldX - gPanel.player.worldX + gPanel.player.screenX;
-        int screenY = worldY - gPanel.player.worldY + gPanel.player.screenY;
+        int screenX = worldX - gPanel.getPlayer().worldX + gPanel.getPlayer().screenX;
+        int screenY = worldY - gPanel.getPlayer().worldY + gPanel.getPlayer().screenY;
 
         if (monsterImage != null) {
-            gc.drawImage(monsterImage, screenX, screenY, GamePanel.getTileSize(), GamePanel.getTileSize());
+            gc.drawImage(monsterImage, screenX, screenY, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
         }
 
         renderHealthBar(gc, screenX, screenY);
     }
 
     private void renderHealthBar(GraphicsContext gc, int screenX, int screenY) {
-        double healthBarWidth = GamePanel.getTileSize() * (health / (double) maxHealth);
+        double healthBarWidth = GameConstants.TILE_SIZE * (health / (double) maxHealth);
 
         gc.setFill(Color.RED);
-        gc.fillRect(screenX, screenY - 10, GamePanel.getTileSize(), 5); // Background (empty health bar)
+        gc.fillRect(screenX, screenY - 10, GameConstants.TILE_SIZE, 5); // Background (empty health bar)
 
         gc.setFill(Color.BLUE);
         gc.fillRect(screenX, screenY - 10, healthBarWidth, 5); // Foreground (current health)

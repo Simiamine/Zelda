@@ -5,6 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.shape.Rectangle;
 import main.GamePanel;
+import main.GameConstants;
 
 public class SuperObject {
 
@@ -13,21 +14,21 @@ public class SuperObject {
     public boolean collision = false;
     public int worldX;
     public int worldY;
-    public Rectangle solidArea = new Rectangle(0, 0, GamePanel.TILE_SIZE, GamePanel.TILE_SIZE);
+    public Rectangle solidArea = new Rectangle(0, 0, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
     public int solidAreaDefaultX = 0;
     public int solidAreaDefaultY = 0;
     public String description;
 	public int mapIndex;
 
     public void render(GraphicsContext gc, GamePanel gPanel) {
-        int screenX = worldX - gPanel.player.worldX + gPanel.player.screenX;
-        int screenY = worldY - gPanel.player.worldY + gPanel.player.screenY;
+        int screenX = worldX - gPanel.getPlayer().worldX + gPanel.getPlayer().screenX;
+        int screenY = worldY - gPanel.getPlayer().worldY + gPanel.getPlayer().screenY;
 
-        if (worldX + GamePanel.getTileSize() > gPanel.player.worldX - gPanel.player.screenX &&
-            worldX - GamePanel.getTileSize() < gPanel.player.worldX + gPanel.player.screenX &&
-            worldY + GamePanel.getTileSize() > gPanel.player.worldY - gPanel.player.screenY && 
-            worldY - GamePanel.getTileSize() < gPanel.player.worldY + gPanel.player.screenY) {
-                gc.drawImage(image, screenX, screenY, GamePanel.getTileSize(), GamePanel.getTileSize());
+        if (worldX + GameConstants.TILE_SIZE > gPanel.getPlayer().worldX - gPanel.getPlayer().screenX &&
+            worldX - GameConstants.TILE_SIZE < gPanel.getPlayer().worldX + gPanel.getPlayer().screenX &&
+            worldY + GameConstants.TILE_SIZE > gPanel.getPlayer().worldY - gPanel.getPlayer().screenY && 
+            worldY - GameConstants.TILE_SIZE < gPanel.getPlayer().worldY + gPanel.getPlayer().screenY) {
+                gc.drawImage(image, screenX, screenY, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
         }
     }
 

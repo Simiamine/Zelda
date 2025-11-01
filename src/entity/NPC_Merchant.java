@@ -2,6 +2,7 @@ package entity;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 import object.OBJ_Potion;
 import object.SuperObject;
 import object.OBJ_Key;
@@ -40,19 +41,19 @@ public class NPC_Merchant extends NPC {
     }
 
     public void interact() {
-        if (gPanel.player.getRubies() >= 10) {
-            gPanel.ui.showTradeWindow(this);
-            gPanel.gameState = gPanel.commerceState;
+        if (gPanel.getPlayer().getRubies() >= 10) {
+            gPanel.getUI().showTradeWindow(this);
+            gPanel.setGameState(GameConstants.GAME_STATE_COMMERCE);
         } else {
-            gPanel.ui.setCurrentDialogue("Vous n'avez pas assez de rubis.");
-            gPanel.gameState = gPanel.dialogueState;
+            gPanel.getUI().setCurrentDialogue("Vous n'avez pas assez de rubis.");
+            gPanel.setGameState(GameConstants.GAME_STATE_DIALOGUE);
         }
     }
 
     public void trade(SuperObject item) {
-        if (gPanel.player.getRubies() >= 10) {
-            gPanel.player.addRuby(-10);
-            gPanel.player.inventory.addItem(item);
+        if (gPanel.getPlayer().getRubies() >= 10) {
+            gPanel.getPlayer().addRuby(-10);
+            gPanel.getPlayer().inventory.addItem(item);
             inventory.removeItem(item);
             System.out.println("Vous avez acheté : " + item.name);
         } else {

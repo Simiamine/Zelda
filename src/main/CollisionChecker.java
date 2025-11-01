@@ -17,40 +17,40 @@ public class CollisionChecker {
         int entityTopWorldY = (int) (entity.worldY + entity.solidArea.getY());
         int entityBottomWorldY = (int) (entity.worldY + entity.solidArea.getY() + entity.solidArea.getHeight());
 
-        int entityLeftCol = entityLeftWorldX / GamePanel.getTileSize();
-        int entityRightCol = entityRightWorldX / GamePanel.getTileSize();
-        int entityTopRow = entityTopWorldY / GamePanel.getTileSize();
-        int entityBottomRow = entityBottomWorldY / GamePanel.getTileSize();
+        int entityLeftCol = entityLeftWorldX / GameConstants.TILE_SIZE;
+        int entityRightCol = entityRightWorldX / GameConstants.TILE_SIZE;
+        int entityTopRow = entityTopWorldY / GameConstants.TILE_SIZE;
+        int entityBottomRow = entityBottomWorldY / GameConstants.TILE_SIZE;
 
         int tileNum1, tileNum2;
 
         switch (entity.direction) {
             case "UP":
-                entityTopRow = (entityTopWorldY - entity.speed) / GamePanel.getTileSize();
-                tileNum1 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityLeftCol][entityTopRow];
-                tileNum2 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityRightCol][entityTopRow];
+                entityTopRow = (entityTopWorldY - entity.speed) / GameConstants.TILE_SIZE;
+                tileNum1 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityLeftCol][entityTopRow];
+                tileNum2 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityRightCol][entityTopRow];
                 break;
             case "DOWN":
-                entityBottomRow = (entityBottomWorldY + entity.speed) / GamePanel.getTileSize();
-                tileNum1 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityLeftCol][entityBottomRow];
-                tileNum2 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityRightCol][entityBottomRow];
+                entityBottomRow = (entityBottomWorldY + entity.speed) / GameConstants.TILE_SIZE;
+                tileNum1 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityLeftCol][entityBottomRow];
+                tileNum2 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityRightCol][entityBottomRow];
                 break;
             case "LEFT":
-                entityLeftCol = (entityLeftWorldX - entity.speed) / GamePanel.getTileSize();
-                tileNum1 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityLeftCol][entityTopRow];
-                tileNum2 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityLeftCol][entityBottomRow];
+                entityLeftCol = (entityLeftWorldX - entity.speed) / GameConstants.TILE_SIZE;
+                tileNum1 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityLeftCol][entityTopRow];
+                tileNum2 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityLeftCol][entityBottomRow];
                 break;
             case "RIGHT":
-                entityRightCol = (entityRightWorldX + entity.speed) / GamePanel.getTileSize();
-                tileNum1 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityRightCol][entityTopRow];
-                tileNum2 = gPanel.tileManager.getMapTileNum()[gPanel.currentMap][entityRightCol][entityBottomRow];
+                entityRightCol = (entityRightWorldX + entity.speed) / GameConstants.TILE_SIZE;
+                tileNum1 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityRightCol][entityTopRow];
+                tileNum2 = gPanel.getTileManager().getMapTileNum()[gPanel.getCurrentMap()][entityRightCol][entityBottomRow];
                 break;
             default:
                 tileNum1 = tileNum2 = 0;
                 break;
         }
 
-        if (gPanel.tileManager.getTiles()[tileNum1].collision || gPanel.tileManager.getTiles()[tileNum2].collision) {
+        if (gPanel.getTileManager().getTiles()[tileNum1].collision || gPanel.getTileManager().getTiles()[tileNum2].collision) {
             entity.collisionOn = true;
         }
     }
@@ -58,13 +58,13 @@ public class CollisionChecker {
     public int checkObject(Entity entity, boolean player) {
         int index = 999;
 
-        for (int i = 0; i < gPanel.obj.length; i++) {
-            if (gPanel.obj[i] != null && gPanel.obj[i].mapIndex == gPanel.currentMap) {
+        for (int i = 0; i < gPanel.getObjects().length; i++) {
+            if (gPanel.getObject(i) != null && gPanel.getObject(i).mapIndex == gPanel.getCurrentMap()) {
                 entity.solidArea.setX(entity.worldX + entity.solidArea.getX());
                 entity.solidArea.setY(entity.worldY + entity.solidArea.getY());
 
-                gPanel.obj[i].solidArea.setX(gPanel.obj[i].worldX + gPanel.obj[i].solidArea.getX());
-                gPanel.obj[i].solidArea.setY(gPanel.obj[i].worldY + gPanel.obj[i].solidArea.getY());
+                gPanel.getObject(i).solidArea.setX(gPanel.getObject(i).worldX + gPanel.getObject(i).solidArea.getX());
+                gPanel.getObject(i).solidArea.setY(gPanel.getObject(i).worldY + gPanel.getObject(i).solidArea.getY());
 
                 switch (entity.direction) {
                     case "UP":
@@ -81,8 +81,8 @@ public class CollisionChecker {
                         break;
                 }
 
-                if (entity.solidArea.getBoundsInLocal().intersects(gPanel.obj[i].solidArea.getBoundsInLocal())) {
-                    if (gPanel.obj[i].collision) {
+                if (entity.solidArea.getBoundsInLocal().intersects(gPanel.getObject(i).solidArea.getBoundsInLocal())) {
+                    if (gPanel.getObject(i).collision) {
                         entity.collisionOn = true;
                     }
                     if (player) {
@@ -92,8 +92,8 @@ public class CollisionChecker {
 
                 entity.solidArea.setX(entity.solidAreaDefaultX);
                 entity.solidArea.setY(entity.solidAreaDefaultY);
-                gPanel.obj[i].solidArea.setX(gPanel.obj[i].solidAreaDefaultX);
-                gPanel.obj[i].solidArea.setY(gPanel.obj[i].solidAreaDefaultY);
+                gPanel.getObject(i).solidArea.setX(gPanel.getObject(i).solidAreaDefaultX);
+                gPanel.getObject(i).solidArea.setY(gPanel.getObject(i).solidAreaDefaultY);
             }
         }
 
@@ -101,7 +101,7 @@ public class CollisionChecker {
     }
 
     public void checkEntityCollision(Entity entity, Entity target) {
-        if (target != null && target.mapIndex == gPanel.currentMap) {
+        if (target != null && target.mapIndex == gPanel.getCurrentMap()) {
             entity.solidArea.setX(entity.worldX + entity.solidArea.getX());
             entity.solidArea.setY(entity.worldY + entity.solidArea.getY());
 
@@ -137,8 +137,8 @@ public class CollisionChecker {
     }
 
     public void checkMonsterCollision(Entity entity) {
-        for (Monster monster : gPanel.monsters) {
-            if (monster.mapIndex == gPanel.currentMap) {
+        for (Monster monster : gPanel.getMonsters()) {
+            if (monster.mapIndex == gPanel.getCurrentMap()) {
                 checkEntityCollision(entity, monster);
             }
         }

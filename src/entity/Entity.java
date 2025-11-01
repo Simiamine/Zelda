@@ -3,10 +3,11 @@ package entity;
 import javafx.scene.image.Image;
 import javafx.scene.shape.Rectangle;
 import main.GamePanel;
+import main.GameConstants;
 
 public class Entity {
 
-    GamePanel gPanel;
+    protected GamePanel gPanel;
 
     public int worldX;
     public int worldY;
@@ -33,8 +34,7 @@ public class Entity {
 
     public Entity(GamePanel gPanel) {
         this.gPanel = gPanel;
-        int tileSize = GamePanel.getTileSize();
-        solidArea = new Rectangle(0, 0, tileSize, tileSize);
+        solidArea = new Rectangle(0, 0, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
         solidAreaDefaultX = 0;
         solidAreaDefaultY = 0;
         inventory = new Inventory();

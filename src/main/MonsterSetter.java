@@ -15,21 +15,21 @@ public class MonsterSetter {
     }
 
     public void initMonster(Class<? extends Monster> monsterClass, int x, int y, int mapIndex) {
-        int tileSize = GamePanel.getTileSize();
+        int tileSize = GameConstants.TILE_SIZE;
         try {
             Constructor<? extends Monster> constructor = monsterClass.getConstructor(GamePanel.class);
             Monster monster = constructor.newInstance(gPanel);
             monster.worldX = x * tileSize;
             monster.worldY = y * tileSize;
             monster.mapIndex = mapIndex; // Assigner la carte
-            gPanel.monsters.add(monster);
+            gPanel.addMonster(monster);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void setMonsters() {
-    	gPanel.monsters.clear();
+    	gPanel.getMonsters().clear();
         initMonster(Monster_Goblin.class, 14, 30, 0);
         initMonster(Monster_Goron.class, 22, 23, 0);
     }

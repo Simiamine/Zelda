@@ -14,21 +14,21 @@ public class NPCSetter {
     }
 
     public void initNPC(Class<? extends NPC> npcClass, int x, int y, int mapIndex) {
-        int tileSize = GamePanel.getTileSize();
+        int tileSize = GameConstants.TILE_SIZE;
         try {
             Constructor<? extends NPC> constructor = npcClass.getConstructor(GamePanel.class);
             NPC npc = constructor.newInstance(gPanel);
             npc.worldX = x * tileSize;
             npc.worldY = y * tileSize;
             npc.mapIndex = mapIndex; // Assigner la carte
-            gPanel.npcs.add(npc);
+            gPanel.addNPC(npc);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void setNPCs() {
-    	gPanel.npcs.clear();
+    	gPanel.getNpcs().clear();
         initNPC(NPC_Old.class, 16, 15, 0);
         initNPC(NPC_Merchant.class, 20, 20, 0);
     }

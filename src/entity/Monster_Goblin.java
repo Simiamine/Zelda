@@ -2,6 +2,7 @@ package entity;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 
 public class Monster_Goblin extends Monster {
 
@@ -29,7 +30,7 @@ public class Monster_Goblin extends Monster {
 //            if (worldX < 0) direction = "RIGHT";
 //        } else if ("RIGHT".equals(direction)) {
 //            worldX += speed;
-//            if (worldX > gPanel.WORLD_WIDTH - GamePanel.getTileSize()) direction = "LEFT";
+//            if (worldX > gPanel.WORLD_WIDTH - GameConstants.TILE_SIZE) direction = "LEFT";
 //        }
     }
 }

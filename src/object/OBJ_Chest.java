@@ -2,6 +2,7 @@ package object;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class OBJ_Chest extends SuperObject {
         
         // Transférer les objets du coffre dans l'inventaire du joueur
         for (SuperObject item : items) {
-            gPanel.player.inventory.addItem(item);
+            gPanel.getPlayer().inventory.addItem(item);
             System.out.println("Vous avez obtenu : " + item.name);
         }
 

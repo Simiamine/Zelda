@@ -2,6 +2,7 @@ package entity;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 import object.OBJ_Bomb;
 import object.SuperObject;
 

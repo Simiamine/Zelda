@@ -2,6 +2,7 @@ package object;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 
 public class OBJ_Ruby extends SuperObject {
 
@@ -18,7 +19,7 @@ public class OBJ_Ruby extends SuperObject {
     @Override
     public boolean interact(GamePanel gPanel) {
         // Ajouter des rubis au joueur
-        gPanel.player.addRuby(20);
+        gPanel.getPlayer().addRuby(20);
         return true;
     }
 }

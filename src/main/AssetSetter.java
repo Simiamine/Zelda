@@ -24,20 +24,15 @@ public class AssetSetter {
 
     // Méthode pour initialiser un objet dans le jeu
     public void initObject(Class<?> objClass, int x, int y, int mapIndex) {
-        int tileSize = GamePanel.getTileSize();
+        int tileSize = GameConstants.TILE_SIZE;
         try {
-            // Trouve le premier indice null dans gPanel.obj
-            int i = findEmptyIndex(gPanel.obj);
-            if (i != -1) {
-                // Crée une nouvelle instance de l'objet
+            int i = gPanel.findEmptyObjectIndex();
+            if (i != GameConstants.NO_OBJECT_FOUND) {
                 SuperObject obj = (SuperObject) objClass.getDeclaredConstructor().newInstance();
-                gPanel.obj[i] = obj;
-                // Positionne l'objet dans le monde du jeu
+                gPanel.setObject(i, obj);
                 obj.getClass().getField("worldX").set(obj, x * tileSize);
                 obj.getClass().getField("worldY").set(obj, y * tileSize);
                 obj.mapIndex = mapIndex; 
-            } else {
-                System.out.println("Impossible d'ajouter un nouvel objet, tableau plein.");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -45,19 +40,14 @@ public class AssetSetter {
     }
     
     public void initObjectexact(Class<?> objClass, int x, int y, int mapIndex) {
-
         try {
-            // Trouve le premier indice null dans gPanel.obj
-            int i = findEmptyIndex(gPanel.obj);
-            if (i != -1) {
-                // Crée une nouvelle instance de l'objet
+            int i = gPanel.findEmptyObjectIndex();
+            if (i != GameConstants.NO_OBJECT_FOUND) {
                 SuperObject obj = (SuperObject) objClass.getDeclaredConstructor().newInstance();
-                gPanel.obj[i] = obj;
-                // Positionne l'objet dans le monde du jeu
-                obj.getClass().getField("worldX").set(obj, x );
-                obj.getClass().getField("worldY").set(obj, y );
-            } else {
-                System.out.println("Impossible d'ajouter un nouvel objet, tableau plein.");
+                gPanel.setObject(i, obj);
+                obj.getClass().getField("worldX").set(obj, x);
+                obj.getClass().getField("worldY").set(obj, y);
+                obj.mapIndex = mapIndex;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -65,12 +55,12 @@ public class AssetSetter {
     }
     
     public void initChest(int x, int y, int mapIndex, SuperObject... items) {
-        int tileSize = GamePanel.getTileSize();
+        int tileSize = GameConstants.TILE_SIZE;
         try {
-            int i = findEmptyIndex(gPanel.obj);
-            if (i != -1) {
+            int i = gPanel.findEmptyObjectIndex();
+            if (i != GameConstants.NO_OBJECT_FOUND) {
                 OBJ_Chest chest = new OBJ_Chest();
-                gPanel.obj[i] = chest;
+                gPanel.setObject(i, chest);
                 chest.worldX = x * tileSize;
                 chest.worldY = y * tileSize;
                 chest.mapIndex = mapIndex;
@@ -78,25 +68,10 @@ public class AssetSetter {
                 for (SuperObject item : items) {
                     chest.addItem(item);
                 }
-            } else {
-                System.out.println("Impossible d'ajouter un nouvel objet, tableau plein.");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    // Méthode pour trouver le premier indice vide dans le tableau d'objets
-    private int findEmptyIndex(SuperObject[] objArray) {
-        for (int i = 0; i < objArray.length; i++) {
-            if (objArray[i] == null) {
-                return i;
-            }
-        }
-        // Si aucun indice n'est vide, rallonge le tableau et renvoie l'index de la première case vide
-        SuperObject[] newArray = Arrays.copyOf(objArray, objArray.length + 1);
-        gPanel.obj = newArray;
-        return objArray.length;
     }
 
     // Méthode pour initialiser les objets du jeu

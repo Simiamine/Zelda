@@ -2,6 +2,7 @@ package object;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 
 public class OBJ_Heart extends SuperObject {
 
@@ -18,7 +19,7 @@ public class OBJ_Heart extends SuperObject {
     @Override
     public boolean interact(GamePanel gPanel) {
         // Ajouter des cœurs au joueur
-        gPanel.player.addHeart(1);
+        gPanel.getPlayer().addHeart(1);
         return true;
     }
 }

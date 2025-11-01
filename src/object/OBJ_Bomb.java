@@ -2,6 +2,7 @@ package object;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 import entity.Monster;
 import entity.Entity;
 import entity.Player;
@@ -23,7 +24,7 @@ public class OBJ_Bomb extends SuperObject {
     public boolean interact(GamePanel gPanel) {
         // Logique pour ramasser la bombe
         System.out.println("La bombe a été ramassée !");
-        gPanel.player.inventory.addItem(this);
+        gPanel.getPlayer().inventory.addItem(this);
         return true;
     }
 
@@ -32,11 +33,11 @@ public class OBJ_Bomb extends SuperObject {
         // Logique pour utiliser la bombe
         int userX = user.worldX;
         int userY = user.worldY;
-        int tileSize = GamePanel.getTileSize();
+        int tileSize = GameConstants.TILE_SIZE;
 
         if (user instanceof Player) {
             // Si le joueur utilise la bombe
-            for (Monster monster : gPanel.monsters) {
+            for (Monster monster : gPanel.getMonsters()) {
                 int monsterX = monster.worldX;
                 int monsterY = monster.worldY;
 
@@ -50,7 +51,7 @@ public class OBJ_Bomb extends SuperObject {
             System.out.println("La bombe a explosé !");
         } else if (user instanceof Monster) {
             // Si un monstre utilise la bombe
-            Player player = gPanel.player;
+            Player player = gPanel.getPlayer();
             int playerX = player.worldX;
             int playerY = player.worldY;
 

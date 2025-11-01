@@ -16,10 +16,9 @@ public class Event {
     }
 
     public void teleport(int map, int x, int y) {
-        gPanel.currentMap = map;
-        gPanel.player.worldX = x * GamePanel.getTileSize();
-        gPanel.player.worldY = y * GamePanel.getTileSize();
-
+        gPanel.setCurrentMap(map);
+        gPanel.getPlayer().worldX = x * GameConstants.TILE_SIZE;
+        gPanel.getPlayer().worldY = y * GameConstants.TILE_SIZE;
     }
 
     public void addTeleportationSquare(int map, int x, int y, int width, int height, int targetMap, int targetX, int targetY) {
@@ -27,11 +26,11 @@ public class Event {
     }
 
     public void checkTeleportation() {
-        int playerX = gPanel.player.worldX / GamePanel.getTileSize();
-        int playerY = gPanel.player.worldY / GamePanel.getTileSize();
+        int playerX = gPanel.getPlayer().worldX / GameConstants.TILE_SIZE;
+        int playerY = gPanel.getPlayer().worldY / GameConstants.TILE_SIZE;
 
         for (TeleportationSquare square : teleportationSquares) {
-            if (gPanel.currentMap == square.map &&
+            if (gPanel.getCurrentMap() == square.map &&
                 playerX >= square.x && playerX < square.x + square.width &&
                 playerY >= square.y && playerY < square.y + square.height) {
                 teleport(square.targetMap, square.targetX, square.targetY);
@@ -39,13 +38,14 @@ public class Event {
             }
         }
     }
+    
     public void renderTeleportationSquares(GraphicsContext gc) {
-        gc.setFill(Color.rgb(128, 0, 128, 0.25)); // Violet avec une opacité de 25%
+        gc.setFill(Color.rgb(128, 0, 128, 0.25));
         for (TeleportationSquare square : teleportationSquares) {
-            if (gPanel.currentMap == square.map) {
-                int screenX = square.x * GamePanel.getTileSize() - gPanel.player.worldX + gPanel.player.screenX;
-                int screenY = square.y * GamePanel.getTileSize() - gPanel.player.worldY + gPanel.player.screenY;
-                gc.fillRect(screenX, screenY, square.width * GamePanel.getTileSize(), square.height * GamePanel.getTileSize());
+            if (gPanel.getCurrentMap() == square.map) {
+                int screenX = square.x * GameConstants.TILE_SIZE - gPanel.getPlayer().worldX + gPanel.getPlayer().screenX;
+                int screenY = square.y * GameConstants.TILE_SIZE - gPanel.getPlayer().worldY + gPanel.getPlayer().screenY;
+                gc.fillRect(screenX, screenY, square.width * GameConstants.TILE_SIZE, square.height * GameConstants.TILE_SIZE);
             }
         }
     }

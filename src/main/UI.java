@@ -10,27 +10,35 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import object.SuperObject;
+import java.util.logging.Logger;
 
+/**
+ * Gestionnaire de l'interface utilisateur du jeu.
+ * Gère l'affichage des statistiques, de l'inventaire, des dialogues et des menus.
+ */
 public class UI {
 
-    private GamePanel gPanel;
-    private GraphicsContext gc;
+    private static final Logger LOGGER = Logger.getLogger(UI.class.getName());
+    private static final int MAX_LINE_WIDTH = GameConstants.DIALOGUE_WINDOW_WIDTH - (GameConstants.TILE_SIZE * 2);
+
+    private final GamePanel gamePanel;
+    private final GraphicsContext gc;
     private Image rubyImage;
     private Image heartImage;
     private Image heartEmptyImage;
     private Font customFont;
     
     public String currentDialogue = "";
-    private static final int MAX_LINE_WIDTH = GamePanel.SCREEN_WIDTH - (GamePanel.TILE_SIZE * 4) - (GamePanel.TILE_SIZE * 2);
-    
     public int slotCol = 0;
     public int slotRow = 0;
 
-    public UI(GamePanel gPanel) {
-        this.gPanel = gPanel;
-        this.gc = gPanel.getGraphicsContext2D();
+    public UI(GamePanel gamePanel) {
+        this.gamePanel = gamePanel;
+        this.gc = gamePanel.getGraphicsContext2D();
         loadUIImages();
         loadCustomFont();
+        
+        LOGGER.info("UI initialisée avec succès");
     }
 
     public void setCurrentDialogue(String dialogue) {
@@ -38,17 +46,17 @@ public class UI {
     }
     
     private void loadUIImages() {
-        rubyImage = new Image("file:res/ui/ruby.png");
-        heartImage = new Image("file:res/ui/heart.png");
-        heartEmptyImage = new Image("file:res/ui/heart_empty.png");
+        rubyImage = new Image(GameConstants.RESOURCE_RUBY_IMAGE);
+        heartImage = new Image(GameConstants.RESOURCE_HEART_IMAGE);
+        heartEmptyImage = new Image(GameConstants.RESOURCE_HEART_EMPTY_IMAGE);
     }
 
     private void loadCustomFont() {
         try {
-            customFont = Font.loadFont("file:res/font/font.ttf", 30);
+            customFont = Font.loadFont(GameConstants.FONT_PATH, GameConstants.FONT_SIZE);
         } catch (Exception e) {
-            e.printStackTrace();
-            customFont = Font.font("Verdana", FontWeight.BOLD, 30); // Fallback font
+            LOGGER.warning("Impossible de charger la police personnalisée, utilisation de la police par défaut");
+            customFont = Font.font("Verdana", FontWeight.BOLD, GameConstants.FONT_SIZE);
         }
     }
 
@@ -56,113 +64,87 @@ public class UI {
         gc.setFont(customFont);
         gc.setFill(Color.WHITE);
 
-        // Draw rubies
-        gc.drawImage(rubyImage, 20, 20, 32, 32);
-        gc.fillText(String.valueOf(player.getRubies()), 60, 45);
+        // Afficher les rubis
+        gc.drawImage(rubyImage, GameConstants.UI_MARGIN, GameConstants.UI_MARGIN, 
+                     GameConstants.UI_ICON_SIZE, GameConstants.UI_ICON_SIZE);
+        gc.fillText(String.valueOf(player.getRubies()), 
+                    GameConstants.UI_MARGIN * 3, GameConstants.UI_RUBY_Y_POSITION);
 
-        // Draw hearts
+        // Afficher les cœurs
         for (int i = 0; i < player.maxHearts; i++) {
+            int heartX = GameConstants.UI_MARGIN + (i * GameConstants.UI_HEART_SPACING);
             if (i < player.getHearts()) {
-                gc.drawImage(heartImage, 20 + (i * 40), 60, 32, 32);
+                gc.drawImage(heartImage, heartX, GameConstants.UI_HEART_Y_POSITION, 
+                           GameConstants.UI_ICON_SIZE, GameConstants.UI_ICON_SIZE);
             } else {
-                gc.drawImage(heartEmptyImage, 20 + (i * 40), 60, 32, 32);
+                gc.drawImage(heartEmptyImage, heartX, GameConstants.UI_HEART_Y_POSITION, 
+                           GameConstants.UI_ICON_SIZE, GameConstants.UI_ICON_SIZE);
             }
         }
 
-        // Draw force
-        
+        // Afficher la force
         String forceText = "Force: " + player.getForce();
         double forceTextWidth = gc.getFont().getSize() * forceText.length() / 2;
-        gc.fillText(forceText, gPanel.getWidth() - forceTextWidth - 20, 45);
+        gc.fillText(forceText, gamePanel.getWidth() - forceTextWidth - GameConstants.UI_MARGIN, 
+                   GameConstants.UI_RUBY_Y_POSITION);
     }
 
     public void renderInventory(Player player) {
-        // FRAME
-        int frameX = GamePanel.TILE_SIZE * 10;
-        int frameY = GamePanel.TILE_SIZE * 2;
-        int frameWidth = GamePanel.TILE_SIZE * 5;
-        int frameHeight = GamePanel.TILE_SIZE * 7;
+        // Fenêtre d'inventaire
+        int frameX = GameConstants.INVENTORY_FRAME_X;
+        int frameY = GameConstants.INVENTORY_FRAME_Y;
+        int frameWidth = GameConstants.INVENTORY_FRAME_WIDTH;
+        int frameHeight = GameConstants.INVENTORY_FRAME_HEIGHT;
         
         drawSubWindow(frameX, frameY, frameWidth, frameHeight);
-        final int slotXStart = frameX + 20;
-        final int slotYStart = frameY + 20;
+        final int slotXStart = frameX + GameConstants.INVENTORY_SLOT_PADDING;
+        final int slotYStart = frameY + GameConstants.INVENTORY_SLOT_PADDING;
         int slotX = slotXStart;
         int slotY = slotYStart;
         
-//        gc.setFill(Color.BLACK);
-//        gc.fillRect(100, 100, 600, 400);
-//        gc.setFill(Color.WHITE);
-//        gc.setFont(Font.font("Verdana", FontWeight.BOLD, 20));
-//        gc.fillText("INVENTORY", 350, 130);
-//
         for (int i = 0; i < player.inventory.getItems().size(); i++) {
             SuperObject item = player.inventory.getItems().get(i);
 
-//            if (item == player.currentWeapon || item == player.currentShield) {
-//                gc.setFill(Color.YELLOW);
-//                gc.fillRoundRect(slotX, slotY, GamePanel.getTileSize(), GamePanel.getTileSize(), 10, 10);
-//            }
-
             if (item.image != null) {
-                gc.drawImage(item.image, slotX, slotY, GamePanel.getTileSize(), GamePanel.getTileSize());
+                gc.drawImage(item.image, slotX, slotY, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
             } else {
                 gc.setFill(Color.WHITE);
                 gc.fillText(item.name, slotX + 10, slotY + 25);
             }
 
-            slotX += GamePanel.getTileSize();
+            slotX += GameConstants.TILE_SIZE;
 
-            if ((i + 1) % 4 == 0) {
+            if ((i + 1) % GameConstants.INVENTORY_COLUMNS == 0) {
                 slotX = slotXStart;
-                slotY += GamePanel.getTileSize();
+                slotY += GameConstants.TILE_SIZE;
             }
-            
-            
         }
         
-//        int y = 180;
-//        for (SuperObject item : player.inventory.getItems()) {
-//            gc.fillText(item.name, 120, y);
-//            y += 30;
-//        }
-        
-        // CURSOR
-        int cursorX = slotXStart + (GamePanel.TILE_SIZE * slotCol);
-        int cursorY = slotYStart + (GamePanel.TILE_SIZE * slotRow);
-        int cursorWidth = GamePanel.TILE_SIZE;
-        int cursorHeight = GamePanel.TILE_SIZE;
+        // Curseur de sélection
+        int cursorX = slotXStart + (GameConstants.TILE_SIZE * slotCol);
+        int cursorY = slotYStart + (GameConstants.TILE_SIZE * slotRow);
+        int cursorWidth = GameConstants.TILE_SIZE;
+        int cursorHeight = GameConstants.TILE_SIZE;
 
         gc.setStroke(Color.WHITE);
         gc.setLineWidth(2);
         gc.strokeRoundRect(cursorX, cursorY, cursorWidth, cursorHeight, 10, 10);
         
-//        int dFrameX = frameX;
-//        int dframeY = frameY + frameHeight;
-//        int dFrameWidth = frameWidth;
-//        int dFrameHeight = GamePanel.TILE_SIZE * 3;
-//        drawSubWindow(dFrameX, dframeY, dFrameWidth, dFrameHeight);
-//        
-//        int textX = dFrameX + 20;
-//        int textY = dframeY + GamePanel.TILE_SIZE;
-        
     }
     
     public void drawDialogueScreen() {
+        Font font = Font.loadFont(GameConstants.FONT_PATH, GameConstants.FONT_SIZE);
 
-        Font font = Font.loadFont("file:res/font/font.ttf", 30);
-
-        // WINDOW
-        int x = GamePanel.TILE_SIZE * 2;
-        int y = GamePanel.TILE_SIZE *10; 
-        int width = GamePanel.SCREEN_WIDTH - (GamePanel.TILE_SIZE * 4);
-        int height = GamePanel.TILE_SIZE * 3;
+        // Fenêtre de dialogue
+        int x = GameConstants.DIALOGUE_WINDOW_X;
+        int y = GameConstants.DIALOGUE_WINDOW_Y; 
+        int width = GameConstants.DIALOGUE_WINDOW_WIDTH;
+        int height = GameConstants.DIALOGUE_WINDOW_HEIGHT;
 
         drawSubWindow(x, y, width, height);
         
-
-        
-        x += GamePanel.TILE_SIZE;
-        y += GamePanel.TILE_SIZE;
+        x += GameConstants.TILE_SIZE;
+        y += GameConstants.TILE_SIZE;
 
         gc.setFont(font);
         gc.setFill(Color.WHITE);
@@ -170,19 +152,20 @@ public class UI {
         String wrappedDialogue = wrapText(currentDialogue);
         for (String line : wrappedDialogue.split("\n")) {
             gc.fillText(line, x, y);
-            y += GamePanel.TILE_SIZE;
+            y += GameConstants.TILE_SIZE;
         }
     }
+    
     public boolean advanceDialogue() {
-        NPC npc = gPanel.player.getFacingNPC();
+        NPC npc = gamePanel.getPlayer().getFacingNPC();
         if (npc != null) {
             String dialogue = npc.speak();
             if (!dialogue.isEmpty()) {
                 setCurrentDialogue(dialogue);
-                return true; // Indique que le dialogue continue
+                return true;
             }
         }
-        return false; // Indique que le dialogue est terminé
+        return false;
     }
 
     public String wrapText(String text) {
@@ -219,7 +202,7 @@ public class UI {
     
     public void drawVictoryScreen() {
         gc.setFill(Color.BLACK);
-        gc.fillRect(0, 0, GamePanel.SCREEN_WIDTH, GamePanel.SCREEN_HEIGHT);
+        gc.fillRect(0, 0, GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
 
         String victoryMessage = "Congratulations! You have obtained the Triforce!";
         Font font = Font.loadFont("file:res/font/font.ttf", 30);
@@ -232,8 +215,8 @@ public class UI {
         double textWidth = text.getLayoutBounds().getWidth();
 
         // Calculate position to center the text
-        int x = (GamePanel.SCREEN_WIDTH - (int) textWidth) / 2;
-        int y = GamePanel.SCREEN_HEIGHT / 2;
+        int x = (GameConstants.SCREEN_WIDTH - (int) textWidth) / 2;
+        int y = GameConstants.SCREEN_HEIGHT / 2;
 
         gc.fillText(victoryMessage, x, y);
     }
@@ -255,25 +238,25 @@ public class UI {
         double quitTextWidth = quitText.getLayoutBounds().getWidth();
 
         // Calculate positions to center the texts
-        int xReplay = (GamePanel.SCREEN_WIDTH - (int) replayTextWidth) / 2;
-        int y = GamePanel.SCREEN_HEIGHT / 2 + 50;
+        int xReplay = (GameConstants.SCREEN_WIDTH - (int) replayTextWidth) / 2;
+        int y = GameConstants.SCREEN_HEIGHT / 2 + 50;
 
-        int xQuit = (GamePanel.SCREEN_WIDTH - (int) quitTextWidth) / 2;
+        int xQuit = (GameConstants.SCREEN_WIDTH - (int) quitTextWidth) / 2;
 
         gc.fillText(replayOption, xReplay, y);
         gc.fillText(quitOption, xQuit, y + 30);
     }
     public void showTradeWindow(NPC_Merchant merchant) {
-        // FRAME
-        int frameX = GamePanel.TILE_SIZE * 3;
-        int frameY = GamePanel.TILE_SIZE * 3;
-        int frameWidth = GamePanel.TILE_SIZE * 10;
-        int frameHeight = GamePanel.TILE_SIZE * 6;
+        // Fenêtre de commerce
+        int frameX = GameConstants.TRADE_WINDOW_X;
+        int frameY = GameConstants.TRADE_WINDOW_Y;
+        int frameWidth = GameConstants.TRADE_WINDOW_WIDTH;
+        int frameHeight = GameConstants.TRADE_WINDOW_HEIGHT;
 
         drawSubWindow(frameX, frameY, frameWidth, frameHeight);
 
-        final int slotXStart = frameX + 20;
-        final int slotYStart = frameY + 20;
+        final int slotXStart = frameX + GameConstants.INVENTORY_SLOT_PADDING;
+        final int slotYStart = frameY + GameConstants.INVENTORY_SLOT_PADDING;
         int slotX = slotXStart;
         int slotY = slotYStart;
 
@@ -281,50 +264,56 @@ public class UI {
             SuperObject item = merchant.inventory.getItems().get(i);
 
             if (item.image != null) {
-                gc.drawImage(item.image, slotX, slotY, GamePanel.getTileSize(), GamePanel.getTileSize());
+                gc.drawImage(item.image, slotX, slotY, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
             } else {
                 gc.setFill(Color.WHITE);
                 gc.fillText(item.name, slotX + 10, slotY + 25);
             }
 
             gc.setFill(Color.YELLOW);
-            gc.fillText("10 Rubies", slotX + 10, slotY + 45);
+            gc.fillText(GameConstants.ITEM_PRICE_DEFAULT + " Rubies", slotX + 10, slotY + 45);
 
-            slotX += GamePanel.getTileSize();
+            slotX += GameConstants.TILE_SIZE;
 
-            if ((i + 1) % 4 == 0) {
+            if ((i + 1) % GameConstants.INVENTORY_COLUMNS == 0) {
                 slotX = slotXStart;
-                slotY += GamePanel.getTileSize();
+                slotY += GameConstants.TILE_SIZE;
             }
         }
 
-        // CURSOR
-        int cursorX = slotXStart + (GamePanel.TILE_SIZE * slotCol);
-        int cursorY = slotYStart + (GamePanel.TILE_SIZE * slotRow);
-        int cursorWidth = GamePanel.TILE_SIZE;
-        int cursorHeight = GamePanel.TILE_SIZE;
+        // Curseur
+        int cursorX = slotXStart + (GameConstants.TILE_SIZE * slotCol);
+        int cursorY = slotYStart + (GameConstants.TILE_SIZE * slotRow);
+        int cursorWidth = GameConstants.TILE_SIZE;
+        int cursorHeight = GameConstants.TILE_SIZE;
 
         gc.setStroke(Color.WHITE);
         gc.setLineWidth(2);
         gc.strokeRoundRect(cursorX, cursorY, cursorWidth, cursorHeight, 10, 10);
 
-        // Draw purchase button
+        // Bouton d'achat
         gc.setFill(Color.GREEN);
-        gc.fillRoundRect(frameX + frameWidth - GamePanel.TILE_SIZE * 3, frameY + frameHeight - GamePanel.TILE_SIZE, GamePanel.TILE_SIZE * 2, GamePanel.TILE_SIZE / 2, 10, 10);
+        gc.fillRoundRect(frameX + frameWidth - GameConstants.TILE_SIZE * 3, 
+                        frameY + frameHeight - GameConstants.TILE_SIZE, 
+                        GameConstants.TILE_SIZE * 2, 
+                        GameConstants.TILE_SIZE / 2, 10, 10);
         gc.setFill(Color.WHITE);
-        gc.fillText("Buy", frameX + frameWidth - GamePanel.TILE_SIZE * 2.5, frameY + frameHeight - GamePanel.TILE_SIZE / 2);
+        gc.fillText("Buy", frameX + frameWidth - GameConstants.TILE_SIZE * 2.5, 
+                   frameY + frameHeight - GameConstants.TILE_SIZE / 2);
     }
 
-
     public void drawSubWindow(int x, int y, int width, int height) {
-        
-        Color color = Color.rgb(0, 0, 0, 0.80);
-        gc.setFill(color);
-        gc.fillRoundRect(x, y, width, height, 35, 35);
+        Color backgroundColor = Color.rgb(0, 0, 0, GameConstants.SUBWINDOW_OPACITY);
+        gc.setFill(backgroundColor);
+        gc.fillRoundRect(x, y, width, height, 
+                        GameConstants.SUBWINDOW_CORNER_RADIUS, 
+                        GameConstants.SUBWINDOW_CORNER_RADIUS);
 
-        color = Color.rgb(255, 255, 255);
-        gc.setStroke(color);
-        gc.setLineWidth(5);
-        gc.strokeRoundRect(x, y, width, height, 25, 25);
+        Color borderColor = Color.rgb(255, 255, 255);
+        gc.setStroke(borderColor);
+        gc.setLineWidth(GameConstants.SUBWINDOW_BORDER_WIDTH);
+        gc.strokeRoundRect(x, y, width, height, 
+                          GameConstants.SUBWINDOW_BORDER_CORNER_RADIUS, 
+                          GameConstants.SUBWINDOW_BORDER_CORNER_RADIUS);
     }
 }

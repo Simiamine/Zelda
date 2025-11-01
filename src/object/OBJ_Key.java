@@ -3,6 +3,7 @@ package object;
 import entity.Entity;
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 
 public class OBJ_Key extends SuperObject {
 
@@ -24,9 +25,9 @@ public class OBJ_Key extends SuperObject {
 
     @Override
     public boolean use(GamePanel gPanel, Entity user) {
-        int doorIndex = gPanel.player.getFacingObject(1);
+        int doorIndex = gPanel.getPlayer().getFacingObject(1);
         if (doorIndex != -1) {
-            SuperObject obj = gPanel.obj[doorIndex];
+            SuperObject obj = gPanel.getObject(doorIndex);
             if (obj instanceof OBJ_Door) {
                 ((OBJ_Door) obj).open();
                 System.out.println("Vous avez ouvert la porte.");

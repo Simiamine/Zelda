@@ -2,6 +2,7 @@ package object;
 
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 
 public class OBJ_Sword extends SuperObject {
 
@@ -18,7 +19,7 @@ public class OBJ_Sword extends SuperObject {
     @Override
     public boolean interact(GamePanel gPanel) {
         System.out.println("You picked up a sword!");
-        gPanel.player.inventory.addItem(this); // Add sword to inventory
+        gPanel.getPlayer().inventory.addItem(this); // Add sword to inventory
         return true;
     }
 }

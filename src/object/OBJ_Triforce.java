@@ -3,6 +3,7 @@ package object;
 import entity.Entity;
 import javafx.scene.image.Image;
 import main.GamePanel;
+import main.GameConstants;
 
 public class OBJ_Triforce extends SuperObject {
 
@@ -20,7 +21,7 @@ public class OBJ_Triforce extends SuperObject {
     public boolean interact(GamePanel gPanel) {
         // Logique pour ramasser la Triforce
         System.out.println("Vous avez ramassé la Triforce !");
-        gPanel.player.inventory.addItem(this);
+        gPanel.getPlayer().inventory.addItem(this);
         return true;
     }
 

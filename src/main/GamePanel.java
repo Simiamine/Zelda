@@ -15,87 +15,213 @@ import entity.Monster;
 import object.SuperObject;
 import tile.TileManager;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
+/**
+ * Panneau principal du jeu gérant la boucle de jeu, le rendu et les états.
+ * Cette classe centralise la logique du jeu et coordonne les différents systèmes.
+ */
 public class GamePanel extends Canvas {
 
-    // SCREEN SETTINGS
-    public static final int ORIGINAL_TILE_SIZE = 16;
-    public static final int scale = 3;
-    public static final int TILE_SIZE = ORIGINAL_TILE_SIZE * scale;
+    private static final Logger LOGGER = Logger.getLogger(GamePanel.class.getName());
     
-    //DEBUG
-    boolean showDebugText = false;
+    // DEBUG
+    private boolean showDebugText = false;
 
-    public Player player;
-    public static int getScale() { return scale; }
-    public static int getTileSize() { return TILE_SIZE; }
-    public static final int MAX_SCREEN_COL = 16;
-    public static final int MAX_SCREEN_ROW = 14;
-    public static final int SCREEN_WIDTH = TILE_SIZE * MAX_SCREEN_COL;
-    public static int getScreenWidth() { return SCREEN_WIDTH; }
-    public static final int SCREEN_HEIGHT = TILE_SIZE * MAX_SCREEN_ROW;
-    public static int getScreenHeight() { return SCREEN_HEIGHT; }
-
-    // WORLD SETTINGS
-    public final int MAX_WORLD_COL = 32;
-    public final int MAX_WORLD_ROW = 32;
-    public final int WORLD_WIDTH = MAX_WORLD_COL * 16;
-    public final int WORLD_HEIGHT = MAX_WORLD_ROW * 16;
-    public final int maxMap = 10;
-    public int currentMap = 0;
-
+    // Entités et systèmes du jeu (encapsulation)
+    private Player player;
+    private InputHandler inputHandler;
+    private TileManager tileManager;
+    private SuperObject[] objects;
+    private AssetSetter assetSetter;
+    private NPCSetter npcSetter;
+    private MonsterSetter monsterSetter;
+    private final List<Monster> monsters;
+    private CollisionChecker collisionChecker;
+    private Sound sound;
+    private final List<NPC> npcs;
+    private Event event;
+    private UI ui;
+    
+    // Configuration du monde
+    private int currentMap;
+    
+    // Contexte graphique et boucle de jeu
     private GraphicsContext gc;
     private AnimationTimer gameLoop;
-    public InputHandler inputHandler;
-    TileManager tileManager = new TileManager(this);
-    public SuperObject[] obj = new SuperObject[10];
-    public AssetSetter aSetter = new AssetSetter(this);
-    public NPCSetter npcSetter = new NPCSetter(this);
-    public MonsterSetter monsterSetter = new MonsterSetter(this);
-    public List<Monster> monsters = new ArrayList<>();
-    public CollisionChecker cChecker = new CollisionChecker(this);
-    Sound sound = new Sound();
-    public List<NPC> npcs = new ArrayList<>();
-    public Event event = new Event(this);
 
-    // GAME STATES
-    public int gameState;
-    public final int playState = 1;
-    public final int pauseState = 2;
-    public final int dialogueState = 3;
-    public final int characterState = 4;
-    public final int inventoryState = 5;
-    public final int commerceState = 6;
-
-    public UI ui;
-
-    // Victory and failure conditions
-    private boolean hasWon = false;
+    // État du jeu
+    private int gameState;
+    private boolean hasWon;
     
-    public NPC_Merchant merchant; 
+    // Référence au marchand (pour le système de commerce)
+    private NPC_Merchant merchant; 
 
 
     public GamePanel() {
-        super(SCREEN_WIDTH, SCREEN_HEIGHT);
-        inputHandler = new InputHandler(this);
-        player = new Player(this, inputHandler);
-        gc = getGraphicsContext2D();
-        ui = new UI(this);
+        super(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
+        
+        // Initialisation des listes
+        this.monsters = new ArrayList<>();
+        this.npcs = new ArrayList<>();
+        
+        // Initialisation des systèmes
+        this.inputHandler = new InputHandler(this);
+        this.player = new Player(this, inputHandler);
+        this.gc = getGraphicsContext2D();
+        this.ui = new UI(this);
+        this.tileManager = new TileManager(this);
+        this.objects = new SuperObject[GameConstants.INITIAL_OBJECT_ARRAY_SIZE];
+        this.assetSetter = new AssetSetter(this);
+        this.npcSetter = new NPCSetter(this);
+        this.monsterSetter = new MonsterSetter(this);
+        this.collisionChecker = new CollisionChecker(this);
+        this.sound = new Sound();
+        this.event = new Event(this);
+        
+        // Configuration graphique
         gc.setImageSmoothing(false);
         setFocusTraversable(true);
         setOnKeyPressed(inputHandler::handleKeyPressed);
         setOnKeyReleased(inputHandler::handleKeyReleased);
+        
+        // État initial
+        this.currentMap = GameConstants.PLAYER_START_MAP;
+        this.hasWon = false;
+        
+        LOGGER.info("GamePanel initialisé avec succès");
+    }
+    
+    // ==================== GETTERS ====================
+    
+    public Player getPlayer() {
+        return player;
+    }
+    
+    public InputHandler getInputHandler() {
+        return inputHandler;
+    }
+    
+    public TileManager getTileManager() {
+        return tileManager;
+    }
+    
+    public SuperObject[] getObjects() {
+        return objects;
+    }
+    
+    public SuperObject getObject(int index) {
+        if (index >= 0 && index < objects.length) {
+            return objects[index];
+        }
+        return null;
+    }
+    
+    public void setObject(int index, SuperObject object) {
+        if (index >= 0 && index < objects.length) {
+            objects[index] = object;
+        }
+    }
+    
+    public List<Monster> getMonsters() {
+        return monsters;
+    }
+    
+    public void addMonster(Monster monster) {
+        monsters.add(monster);
+    }
+    
+    public void removeMonster(Monster monster) {
+        monsters.remove(monster);
+    }
+    
+    public void clearMonsters() {
+        monsters.clear();
+    }
+    
+    public CollisionChecker getCollisionChecker() {
+        return collisionChecker;
+    }
+    
+    public List<NPC> getNpcs() {
+        return npcs;
+    }
+    
+    public void addNPC(NPC npc) {
+        npcs.add(npc);
+    }
+    
+    public void removeNPC(NPC npc) {
+        npcs.remove(npc);
+    }
+    
+    public void clearNPCs() {
+        npcs.clear();
+    }
+    
+    public void addNpc(NPC npc) {
+        npcs.add(npc);
+    }
+    
+    public Event getEvent() {
+        return event;
+    }
+    
+    public UI getUI() {
+        return ui;
+    }
+    
+    public int getCurrentMap() {
+        return currentMap;
+    }
+    
+    public void setCurrentMap(int currentMap) {
+        this.currentMap = currentMap;
+        LOGGER.fine("Carte changée vers : " + currentMap);
+    }
+    
+    public int getGameState() {
+        return gameState;
+    }
+    
+    public void setGameState(int gameState) {
+        int oldState = this.gameState;
+        this.gameState = gameState;
+        LOGGER.fine("État du jeu changé de " + oldState + " vers " + gameState);
+    }
+    
+    public NPC_Merchant getMerchant() {
+        return merchant;
+    }
+    
+    public void setMerchant(NPC_Merchant merchant) {
+        this.merchant = merchant;
+    }
+    
+    public AssetSetter getAssetSetter() {
+        return assetSetter;
+    }
+    
+    public NPCSetter getNpcSetter() {
+        return npcSetter;
+    }
+    
+    public MonsterSetter getMonsterSetter() {
+        return monsterSetter;
     }
 
     public void setupGame() {
-        aSetter.setObject();
+        assetSetter.setObject();
         npcSetter.setNPCs();
         monsterSetter.setMonsters();
         setupTeleportationSquares();
         playMusic(1);
-        gameState = playState;
+        gameState = GameConstants.GAME_STATE_PLAY;
+        LOGGER.info("Jeu configuré et prêt à démarrer");
     }
 
     public void startGameLoop() {
@@ -110,18 +236,23 @@ public class GamePanel extends Canvas {
     }
 
     private void update() {
-        if (gameState == playState) {
+        if (gameState == GameConstants.GAME_STATE_PLAY) {
             player.update(inputHandler.getInputList());
+            
+            // Mise à jour des NPCs de la carte actuelle
             for (NPC npc : npcs) {
                 if (npc.mapIndex == currentMap) {
                     npc.update();
                 }
             }
+            
+            // Mise à jour des monstres de la carte actuelle
             for (Monster monster : monsters) {
-            	if (monster.mapIndex == currentMap) {
+                if (monster.mapIndex == currentMap) {
                     monster.update();
                 }
             }
+            
             event.checkTeleportation();
             checkVictoryConditions();
             checkFailureConditions();
@@ -129,40 +260,48 @@ public class GamePanel extends Canvas {
     }
 
     private void render() {
+        // Effacer l'écran
         gc.clearRect(0, 0, getWidth(), getHeight());
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, getWidth(), getHeight());
 
+        // Rendu des tuiles
         tileManager.render(gc);
 
-        for (SuperObject obj : obj) {
-            if (obj != null && obj.mapIndex == currentMap) {
-                obj.render(gc, this);
+        // Rendu des objets de la carte actuelle
+        for (SuperObject object : objects) {
+            if (object != null && object.mapIndex == currentMap) {
+                object.render(gc, this);
             }
         }
 
+        // Rendu des NPCs de la carte actuelle
         for (NPC npc : npcs) {
             if (npc.mapIndex == currentMap) {
                 npc.render(gc);
             }
         }
 
+        // Rendu des monstres de la carte actuelle
         for (Monster monster : monsters) {
             if (monster.mapIndex == currentMap) {
                 monster.render(gc);
             }
         }
 
+        // Rendu du joueur
         player.render(gc);
         
+        // Rendu des zones de téléportation (debug)
         event.renderTeleportationSquares(gc);
 
-        if (gameState == playState) {
+        // Rendu de l'interface selon l'état du jeu
+        if (gameState == GameConstants.GAME_STATE_PLAY) {
             ui.renderPlayerStats(player);
-        } else if (gameState == inventoryState) {
+        } else if (gameState == GameConstants.GAME_STATE_INVENTORY) {
             ui.renderInventory(player);
             ui.renderPlayerStats(player);
-        } else if (gameState == dialogueState) {
+        } else if (gameState == GameConstants.GAME_STATE_DIALOGUE) {
             ui.drawDialogueScreen();
             ui.renderPlayerStats(player);
         } 
@@ -184,17 +323,19 @@ public class GamePanel extends Canvas {
     }
 
     public int findEmptyObjectIndex() {
-        for (int i = 0; i < obj.length; i++) {
-            if (obj[i] == null) {
+        for (int i = 0; i < objects.length; i++) {
+            if (objects[i] == null) {
                 return i;
             }
         }
-        return -1;
+        return GameConstants.NO_OBJECT_FOUND;
     }
-    public void removeObject(SuperObject obj) {
-        for (int i = 0; i < this.obj.length; i++) {
-            if (this.obj[i] == obj) {
-                this.obj[i] = null;
+    
+    public void removeObject(SuperObject object) {
+        for (int i = 0; i < this.objects.length; i++) {
+            if (this.objects[i] == object) {
+                this.objects[i] = null;
+                LOGGER.fine("Objet supprimé à l'index : " + i);
                 break;
             }
         }
@@ -205,8 +346,9 @@ public class GamePanel extends Canvas {
         monsters.clear();
         npcSetter.setNPCs();
         monsterSetter.setMonsters();
-        gameState = playState;
+        gameState = GameConstants.GAME_STATE_PLAY;
         hasWon = false;
+        LOGGER.info("Jeu réinitialisé");
     }
     
     public void setVictoryCondition() {
@@ -227,49 +369,64 @@ public class GamePanel extends Canvas {
             alert.getButtonTypes().setAll(quitButton, replayButton);
 
             Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == quitButton) {
-                Platform.exit();
-            } else if (result.get() == replayButton) {
-                resetGame();
+            if (result.isPresent()) {
+                if (result.get() == quitButton) {
+                    LOGGER.info("Sortie du jeu après victoire");
+                    Platform.exit();
+                } else if (result.get() == replayButton) {
+                    LOGGER.info("Relance du jeu après victoire");
+                    resetGame();
+                }
             }
         });
     }
         
     private void checkVictoryConditions() {
         if (hasWon) {
-        	showVictoryDialog();
-            
+            showVictoryDialog();
         }
     }
 
     private void checkFailureConditions() {
         if (player.getHearts() <= 0) {
-            System.out.println("Game Over");
-            gameState = dialogueState;
+            LOGGER.warning("Game Over - le joueur n'a plus de points de vie");
+            gameState = GameConstants.GAME_STATE_DIALOGUE;
         }
     }
     
+    /**
+     * Gère l'interaction entre le joueur et un PNJ.
+     * Cette méthode centralise toute la logique d'interaction pour éviter la duplication.
+     * 
+     * @param npc Le PNJ avec lequel interagir
+     */
     public void interactWithNPC(NPC npc) {
+        if (npc == null) {
+            return;
+        }
+        
+        // Cas spécial : marchand
         if (npc instanceof NPC_Merchant) {
             NPC_Merchant merchant = (NPC_Merchant) npc;
             merchant.interact();
+            return;
+        }
+        
+        // Interaction standard : dialogue
+        String dialogue = npc.speak();
+        if (!dialogue.isEmpty()) {
+            ui.setCurrentDialogue(dialogue);
+            gameState = GameConstants.GAME_STATE_DIALOGUE;
         } else {
-            if (npc != null) {
-                String dialogue = npc.speak();
-                if (!dialogue.isEmpty()) {
-                    ui.setCurrentDialogue(dialogue);
-                    gameState = dialogueState;
-                } else {
-                    gameState = playState;
-                }
-                // Example interaction: transfer an item from NPC to player
-                if (!npc.inventory.getItems().isEmpty()) {
-                    SuperObject item = npc.inventory.getItems().get(0);
-                    npc.inventory.removeItem(item);
-                    player.inventory.addItem(item);
-                    System.out.println("Received " + item.name + " from " + npc.getClass().getSimpleName());
-                }
-            }
+            gameState = GameConstants.GAME_STATE_PLAY;
+        }
+        
+        // Transfert d'objet du NPC vers le joueur (si disponible)
+        if (!npc.inventory.getItems().isEmpty()) {
+            SuperObject item = npc.inventory.getItems().get(0);
+            npc.inventory.removeItem(item);
+            player.inventory.addItem(item);
+            LOGGER.info("Objet reçu : " + item.name + " de " + npc.getClass().getSimpleName());
         }
     }
     private void setupTeleportationSquares() {

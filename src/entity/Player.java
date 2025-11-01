@@ -1,34 +1,40 @@
 package entity;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import main.GamePanel;
+import main.GameConstants;
 import main.InputHandler;
-//import object.OBJ_Grass;
 import object.SuperObject;
 
+/**
+ * Représente le joueur contrôlé par l'utilisateur.
+ * Gère les mouvements, les attaques, l'inventaire et les interactions.
+ */
 public class Player extends Entity {
+
+    private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
 
     private final Image[][] directionImages = new Image[4][8]; // [0] = up, [1] = down, [2] = right, [3] = left
     public final int screenX;
     public final int screenY;
-    private final int SPRITE_WIDTH = GamePanel.getScale() * 16;
-    private final int SPRITE_HEIGHT = GamePanel.getScale() * 24;
+    private final int SPRITE_WIDTH = GameConstants.PLAYER_SPRITE_WIDTH;
+    private final int SPRITE_HEIGHT = GameConstants.PLAYER_SPRITE_HEIGHT;
     private boolean isMoving = false;
-    private final int interactionMargin = 1; // Marge de tolérance pour l'interaction
     
     private int rubies;
     private int hearts;
-    public final int maxRubies = 999;
-    public final int maxHearts = 6;
+    public final int maxRubies = GameConstants.PLAYER_MAX_RUBIES;
+    public final int maxHearts = GameConstants.PLAYER_MAX_HEARTS;
     private int force;
     private int attackRange;
-    private boolean isAttacking = false; // Ajouter un drapeau pour vérifier si le joueur attaque
+    private boolean isAttacking = false;
 
-    public InputHandler inputHandler;
+    private InputHandler inputHandler;
 
     public int getSpriteWidth() {
         return SPRITE_WIDTH;
@@ -37,33 +43,43 @@ public class Player extends Entity {
     public int getSpriteHeight() {
         return SPRITE_HEIGHT;
     }
+    
+    public InputHandler getInputHandler() {
+        return inputHandler;
+    }
 
-    public Player(GamePanel gPanel, InputHandler inputHandler) {
-        super(gPanel);
-        this.gPanel = gPanel;
+    public Player(GamePanel gamePanel, InputHandler inputHandler) {
+        super(gamePanel);
         this.inputHandler = inputHandler;
 
-        screenX = GamePanel.getScreenWidth() / 2 - (GamePanel.getTileSize() / 2);
-        screenY = GamePanel.getScreenHeight() / 2 - (GamePanel.getTileSize() / 2);
+        screenX = GameConstants.SCREEN_WIDTH / 2 - (GameConstants.TILE_SIZE / 2);
+        screenY = GameConstants.SCREEN_HEIGHT / 2 - (GameConstants.TILE_SIZE / 2);
 
-        solidArea = new Rectangle(12,40,24,24);
+        solidArea = new Rectangle(
+            GameConstants.PLAYER_COLLISION_X,
+            GameConstants.PLAYER_COLLISION_Y,
+            GameConstants.PLAYER_COLLISION_WIDTH,
+            GameConstants.PLAYER_COLLISION_HEIGHT
+        );
         solidAreaDefaultX = (int) solidArea.getX();
         solidAreaDefaultY = (int) solidArea.getY();
 
         setDefaultValues();
         loadPlayerImages();
+        
+        LOGGER.info("Joueur créé avec succès");
     }
 
     public void setDefaultValues() {
-        worldX = GamePanel.getTileSize() * 11 + 24;
-        worldY = GamePanel.getTileSize() * 17;
-        speed = 10;
-        direction = "DOWN"; // Use uppercase for consistency
+        worldX = GameConstants.PLAYER_START_WORLD_X;
+        worldY = GameConstants.PLAYER_START_WORLD_Y;
+        speed = GameConstants.PLAYER_DEFAULT_SPEED;
+        direction = GameConstants.DIRECTION_DOWN;
         rubies = 0;
         hearts = maxHearts;
-        force = 1;
-        attackRange = 1;
-        gPanel.currentMap = 0;
+        force = GameConstants.PLAYER_DEFAULT_FORCE;
+        attackRange = GameConstants.PLAYER_DEFAULT_ATTACK_RANGE;
+        gPanel.setCurrentMap(GameConstants.PLAYER_START_MAP);
     }
 
     public void loadPlayerImages() {
@@ -88,30 +104,34 @@ public class Player extends Entity {
 
     private void updateForceAndRange() {
         boolean hasSword = inventory.getItems().stream().anyMatch(item -> item.name.equals("Sword"));
-        force = hasSword ? 3 : 1; // Force de base est 1, si l'épée est présente, force est 3
-        attackRange = hasSword ? 2 : 1; // Portée de base est 1, si l'épée est présente, portée est 2
+        force = hasSword ? GameConstants.PLAYER_SWORD_FORCE : GameConstants.PLAYER_DEFAULT_FORCE;
+        attackRange = hasSword ? GameConstants.PLAYER_SWORD_ATTACK_RANGE : GameConstants.PLAYER_DEFAULT_ATTACK_RANGE;
     }
 
     private void handleInput(ArrayList<String> inputList) {
-        isMoving = inputList.contains("LEFT") || inputList.contains("RIGHT") || inputList.contains("UP") || inputList.contains("DOWN");
-        if (inputList.contains("LEFT")) direction = "LEFT";
-        if (inputList.contains("RIGHT")) direction = "RIGHT";
-        if (inputList.contains("UP")) direction = "UP";
-        if (inputList.contains("DOWN")) direction = "DOWN";
+        isMoving = inputList.contains(GameConstants.DIRECTION_LEFT) || 
+                   inputList.contains(GameConstants.DIRECTION_RIGHT) || 
+                   inputList.contains(GameConstants.DIRECTION_UP) || 
+                   inputList.contains(GameConstants.DIRECTION_DOWN);
+        
+        if (inputList.contains(GameConstants.DIRECTION_LEFT)) direction = GameConstants.DIRECTION_LEFT;
+        if (inputList.contains(GameConstants.DIRECTION_RIGHT)) direction = GameConstants.DIRECTION_RIGHT;
+        if (inputList.contains(GameConstants.DIRECTION_UP)) direction = GameConstants.DIRECTION_UP;
+        if (inputList.contains(GameConstants.DIRECTION_DOWN)) direction = GameConstants.DIRECTION_DOWN;
     }
 
     private void checkCollisions() {
         collisionOn = false;
-        gPanel.cChecker.checkTile(this);
-        int objIndex = gPanel.cChecker.checkObject(this, true);
+        gPanel.getCollisionChecker().checkTile(this);
+        int objIndex = gPanel.getCollisionChecker().checkObject(this, true);
         pickUpObject(objIndex);
         checkEntityCollisions();
-        gPanel.cChecker.checkMonsterCollision(this); // Ajouter la vérification de collision avec les monstres
+        gPanel.getCollisionChecker().checkMonsterCollision(this);
     }
 
     private void checkEntityCollisions() {
-        for (NPC npc : gPanel.npcs) {
-            gPanel.cChecker.checkEntityCollision(this, npc);
+        for (NPC npc : gPanel.getNpcs()) {
+            gPanel.getCollisionChecker().checkEntityCollision(this, npc);
         }
     }
 
@@ -119,7 +139,8 @@ public class Player extends Entity {
         if (inputHandler.isSpacePressed()) {
             NPC npc = getFacingNPC();
             if (npc != null) {
-                interactWithNPC(npc);
+                // Utiliser la méthode centralisée de GamePanel au lieu de dupliquer le code
+                gPanel.interactWithNPC(npc);
             }
         }
     }
@@ -127,14 +148,15 @@ public class Player extends Entity {
     private void attackObjectsAndMonsters() {
         if (inputHandler.isAttackPressed()) {
             ArrayList<Monster> monstersToAttack = new ArrayList<>();
-            for (Monster monster : gPanel.monsters) {
+            for (Monster monster : gPanel.getMonsters()) {
                 if (isInAttackRange(monster)) {
                     monstersToAttack.add(monster);
                 }
             }
             for (Monster monster : monstersToAttack) {
-                if (monster.mapIndex == gPanel.currentMap) {
+                if (monster.mapIndex == gPanel.getCurrentMap()) {
                     monster.receiveDamage(force);
+                    LOGGER.fine("Attaque infligée au monstre : " + force + " dégâts");
                 }
             }
         }
@@ -142,33 +164,33 @@ public class Player extends Entity {
 
     private boolean isInAttackRange(Monster monster) {
         int playerLeftX = worldX;
-        int playerRightX = worldX + GamePanel.getTileSize();
+        int playerRightX = worldX + GameConstants.TILE_SIZE;
         int playerTopY = worldY;
-        int playerBottomY = worldY + GamePanel.getTileSize();
+        int playerBottomY = worldY + GameConstants.TILE_SIZE;
 
         int monsterLeftX = monster.worldX;
-        int monsterRightX = monster.worldX + GamePanel.getTileSize();
+        int monsterRightX = monster.worldX + GameConstants.TILE_SIZE;
         int monsterTopY = monster.worldY;
-        int monsterBottomY = monster.worldY + GamePanel.getTileSize();
+        int monsterBottomY = monster.worldY + GameConstants.TILE_SIZE;
 
         switch (direction) {
-            case "UP":
-                return playerTopY - attackRange * GamePanel.getTileSize() < monsterBottomY &&
+            case GameConstants.DIRECTION_UP:
+                return playerTopY - attackRange * GameConstants.TILE_SIZE < monsterBottomY &&
                         playerBottomY > monsterTopY &&
                         playerRightX > monsterLeftX &&
                         playerLeftX < monsterRightX;
-            case "DOWN":
-                return playerBottomY + attackRange * GamePanel.getTileSize() > monsterTopY &&
+            case GameConstants.DIRECTION_DOWN:
+                return playerBottomY + attackRange * GameConstants.TILE_SIZE > monsterTopY &&
                         playerTopY < monsterBottomY &&
                         playerRightX > monsterLeftX &&
                         playerLeftX < monsterRightX;
-            case "LEFT":
-                return playerLeftX - attackRange * GamePanel.getTileSize() < monsterRightX &&
+            case GameConstants.DIRECTION_LEFT:
+                return playerLeftX - attackRange * GameConstants.TILE_SIZE < monsterRightX &&
                         playerRightX > monsterLeftX &&
                         playerBottomY > monsterTopY &&
                         playerTopY < monsterBottomY;
-            case "RIGHT":
-                return playerRightX + attackRange * GamePanel.getTileSize() > monsterLeftX &&
+            case GameConstants.DIRECTION_RIGHT:
+                return playerRightX + attackRange * GameConstants.TILE_SIZE > monsterLeftX &&
                         playerLeftX < monsterRightX &&
                         playerBottomY > monsterTopY &&
                         playerTopY < monsterBottomY;
@@ -180,24 +202,24 @@ public class Player extends Entity {
     private void updatePosition() {
         if (!collisionOn && isMoving) {
             switch (direction) {
-                case "UP": worldY -= speed; break;
-                case "DOWN": worldY += speed; break;
-                case "LEFT": worldX -= speed; break;
-                case "RIGHT": worldX += speed; break;
+                case GameConstants.DIRECTION_UP: worldY -= speed; break;
+                case GameConstants.DIRECTION_DOWN: worldY += speed; break;
+                case GameConstants.DIRECTION_LEFT: worldX -= speed; break;
+                case GameConstants.DIRECTION_RIGHT: worldX += speed; break;
             }
         }
     }
 
     private void updateSprite() {
         spriteCounter++;
-        if (spriteCounter > 3) {
-            spriteNum = (spriteNum % 8) + 1; // Change de sprite de 1 à 8
+        if (spriteCounter > GameConstants.SPRITE_ANIMATION_SPEED) {
+            spriteNum = (spriteNum % GameConstants.SPRITE_FRAMES) + 1;
             spriteCounter = 0;
         }
     }
 
     public NPC getFacingNPC() {
-        for (NPC npc : gPanel.npcs) {
+        for (NPC npc : gPanel.getNpcs()) {
             if (npc != null && isNear(npc)) {
                 return npc;
             }
@@ -206,65 +228,48 @@ public class Player extends Entity {
     }
 
     private boolean isNear(Entity entity) {
-        int playerLeftX = worldX - interactionMargin;
-        int playerRightX = worldX + GamePanel.getTileSize() + interactionMargin;
-        int playerTopY = worldY - interactionMargin;
-        int playerBottomY = worldY + GamePanel.getTileSize() + interactionMargin;
+        int playerLeftX = worldX - GameConstants.PLAYER_INTERACTION_MARGIN;
+        int playerRightX = worldX + GameConstants.TILE_SIZE + GameConstants.PLAYER_INTERACTION_MARGIN;
+        int playerTopY = worldY - GameConstants.PLAYER_INTERACTION_MARGIN;
+        int playerBottomY = worldY + GameConstants.TILE_SIZE + GameConstants.PLAYER_INTERACTION_MARGIN;
 
         int entityLeftX = entity.worldX;
-        int entityRightX = entity.worldX + GamePanel.getTileSize();
+        int entityRightX = entity.worldX + GameConstants.TILE_SIZE;
         int entityTopY = entity.worldY;
-        int entityBottomY = entity.worldY + (int) (GamePanel.getTileSize() * 1.5);
+        int entityBottomY = entity.worldY + (int) (GameConstants.TILE_SIZE * 1.5);
 
-        return playerRightX > entityLeftX && playerLeftX < entityRightX && playerBottomY > entityTopY && playerTopY < entityBottomY;
+        return playerRightX > entityLeftX && playerLeftX < entityRightX && 
+               playerBottomY > entityTopY && playerTopY < entityBottomY;
     }
 
-    public void pickUpObject(int i) {
-        if (i != 999) {
-            SuperObject obj = gPanel.obj[i];
-            if (obj.interact(gPanel)) {
-                gPanel.obj[i] = null; // Remove the object from the game world
-            }
-        }
-    }
-
-    public void interactWithNPC(NPC npc) {
-        if (npc != null) {
-            String dialogue = npc.speak();
-            if (!dialogue.isEmpty()) {
-                gPanel.ui.setCurrentDialogue(dialogue);
-                gPanel.gameState = gPanel.dialogueState; // Passe le jeu en mode dialogue
-            } else {
-                gPanel.gameState = gPanel.playState; // Revenir en mode jeu si le dialogue est terminé
-            }
-            // Example interaction: transfer an item from NPC to player
-            if (!npc.inventory.getItems().isEmpty()) {
-                SuperObject item = npc.inventory.getItems().get(0);
-                npc.inventory.removeItem(item);
-                inventory.addItem(item);
-                System.out.println("Received " + item.name + " from " + npc.getClass().getSimpleName());
+    public void pickUpObject(int index) {
+        if (index != GameConstants.OBJECT_NOT_FOUND_INDEX) {
+            SuperObject obj = gPanel.getObject(index);
+            if (obj != null && obj.interact(gPanel)) {
+                gPanel.setObject(index, null);
+                LOGGER.fine("Objet ramassé : " + obj.name);
             }
         }
     }
 
     public void render(GraphicsContext gc) {
         if (isAttacking) {
-            renderAttackRange(gc); // Afficher les cases d'attaque avant de dessiner le joueur
+            renderAttackRange(gc);
         }
 
         Image image = null;
 
         switch (direction) {
-            case "UP":
+            case GameConstants.DIRECTION_UP:
                 image = isMoving ? directionImages[0][spriteNum - 1] : directionImages[0][0];
                 break;
-            case "DOWN":
+            case GameConstants.DIRECTION_DOWN:
                 image = isMoving ? directionImages[1][spriteNum - 1] : directionImages[1][0];
                 break;
-            case "RIGHT":
+            case GameConstants.DIRECTION_RIGHT:
                 image = isMoving ? directionImages[2][spriteNum - 1] : directionImages[2][0];
                 break;
-            case "LEFT":
+            case GameConstants.DIRECTION_LEFT:
                 image = isMoving ? directionImages[3][spriteNum - 1] : directionImages[3][0];
                 break;
         }
@@ -273,59 +278,60 @@ public class Player extends Entity {
             gc.drawImage(image, screenX, screenY, getSpriteWidth(), getSpriteHeight());
         }
 
-        // Draw the player's collision box
+        // Debug : afficher la boîte de collision
         renderCollisionBox(gc);
     }
 
     private void renderAttackRange(GraphicsContext gc) {
-        gc.setFill(Color.rgb(255, 0, 0, 0.25)); // Rouge avec une opacité de 25%
+        gc.setFill(Color.rgb(255, 0, 0, GameConstants.COLLISION_DEBUG_OPACITY));
 
         for (int range = 1; range <= attackRange; range++) {
             int attackX = screenX;
             int attackY = screenY;
 
             switch (direction) {
-                case "UP":
-                    attackY = screenY - GamePanel.getTileSize() * range;
+                case GameConstants.DIRECTION_UP:
+                    attackY = screenY - GameConstants.TILE_SIZE * range;
                     break;
-                case "DOWN":
-                    attackY = screenY + GamePanel.getTileSize() * range;
+                case GameConstants.DIRECTION_DOWN:
+                    attackY = screenY + GameConstants.TILE_SIZE * range;
                     break;
-                case "LEFT":
-                    attackX = screenX - GamePanel.getTileSize() * range;
+                case GameConstants.DIRECTION_LEFT:
+                    attackX = screenX - GameConstants.TILE_SIZE * range;
                     break;
-                case "RIGHT":
-                    attackX = screenX + GamePanel.getTileSize() * range;
+                case GameConstants.DIRECTION_RIGHT:
+                    attackX = screenX + GameConstants.TILE_SIZE * range;
                     break;
             }
 
-            gc.fillRect(attackX, attackY, GamePanel.getTileSize(), GamePanel.getTileSize());
+            gc.fillRect(attackX, attackY, GameConstants.TILE_SIZE, GameConstants.TILE_SIZE);
         }
     }
 
     private void renderCollisionBox(GraphicsContext gc) {
-        gc.setFill(Color.rgb(0, 255, 0, 0.25)); // Vert avec une opacité de 25%
-        gc.fillRect(screenX + solidArea.getX(), screenY + solidArea.getY(), solidArea.getWidth(), solidArea.getHeight());
+        gc.setFill(Color.rgb(0, 255, 0, GameConstants.COLLISION_DEBUG_OPACITY));
+        gc.fillRect(screenX + solidArea.getX(), screenY + solidArea.getY(), 
+                    solidArea.getWidth(), solidArea.getHeight());
     }
 
     public void addRuby(int amount) {
         rubies = Math.min(rubies + amount, maxRubies);
-        System.out.println("Rubies: " + rubies);
+        LOGGER.fine("Rubies ajoutés: " + amount + ", Total: " + rubies);
     }
 
     public void addHeart(int amount) {
         hearts = Math.min(hearts + amount, maxHearts);
-        System.out.println("Hearts: " + hearts);
+        LOGGER.fine("Coeurs ajoutés: " + amount + ", Total: " + hearts);
     }
 
     public void takeDamage(int damage) {
         hearts = Math.max(hearts - damage, 0);
         if (hearts == 0) {
-            System.out.println("Game Over");
-            gPanel.resetGame(); // Reset the game
-            resetStats(); // Réinitialise les statistiques et l'inventaire du joueur
+            LOGGER.warning("Game Over - Le joueur est mort");
+            gPanel.resetGame();
+            resetStats();
         } else {
-            System.out.println("Hearts: " + hearts);
+            LOGGER.fine("Dégâts reçus: " + damage + ", Coeurs restants: " + hearts);
         }
     }
 
@@ -370,31 +376,32 @@ public class Player extends Entity {
         int playerBottomY = worldY;
 
         switch (direction) {
-            case "UP":
-                playerTopY -= GamePanel.getTileSize() * range;
-                playerBottomY = playerTopY + GamePanel.getTileSize();
+            case GameConstants.DIRECTION_UP:
+                playerTopY -= GameConstants.TILE_SIZE * range;
+                playerBottomY = playerTopY + GameConstants.TILE_SIZE;
                 break;
-            case "DOWN":
-                playerBottomY += GamePanel.getTileSize() * range;
-                playerTopY = playerBottomY - GamePanel.getTileSize();
+            case GameConstants.DIRECTION_DOWN:
+                playerBottomY += GameConstants.TILE_SIZE * range;
+                playerTopY = playerBottomY - GameConstants.TILE_SIZE;
                 break;
-            case "LEFT":
-                playerLeftX -= GamePanel.getTileSize() * range;
-                playerRightX = playerLeftX + GamePanel.getTileSize();
+            case GameConstants.DIRECTION_LEFT:
+                playerLeftX -= GameConstants.TILE_SIZE * range;
+                playerRightX = playerLeftX + GameConstants.TILE_SIZE;
                 break;
-            case "RIGHT":
-                playerRightX += GamePanel.getTileSize() * range;
-                playerLeftX = playerRightX - GamePanel.getTileSize();
+            case GameConstants.DIRECTION_RIGHT:
+                playerRightX += GameConstants.TILE_SIZE * range;
+                playerLeftX = playerRightX - GameConstants.TILE_SIZE;
                 break;
         }
 
-        for (int i = 0; i < gPanel.obj.length; i++) {
-            SuperObject obj = gPanel.obj[i];
-            if (obj != null && obj.mapIndex == gPanel.currentMap) {
+        SuperObject[] objects = gPanel.getObjects();
+        for (int i = 0; i < objects.length; i++) {
+            SuperObject obj = objects[i];
+            if (obj != null && obj.mapIndex == gPanel.getCurrentMap()) {
                 int objLeftX = obj.worldX;
-                int objRightX = obj.worldX + GamePanel.getTileSize();
+                int objRightX = obj.worldX + GameConstants.TILE_SIZE;
                 int objTopY = obj.worldY;
-                int objBottomY = obj.worldY + GamePanel.getTileSize();
+                int objBottomY = obj.worldY + GameConstants.TILE_SIZE;
 
                 if (playerRightX > objLeftX && playerLeftX < objRightX &&
                     playerBottomY > objTopY && playerTopY < objBottomY) {
@@ -402,6 +409,6 @@ public class Player extends Entity {
                 }
             }
         }
-        return -1;
+        return GameConstants.NO_OBJECT_FOUND;
     }
 }

@@ -42,69 +42,69 @@ public class InputHandler implements EventHandler<KeyEvent> {
         switch (event.getCode()) {
             case SPACE:
                 spacePressed = true;
-                if (gPanel.gameState == gPanel.inventoryState) {
-                    gPanel.player.useItem(gPanel.ui.slotRow * 4 + gPanel.ui.slotCol); // Utilise l'objet sélectionné
+                if (gPanel.getGameState() == GameConstants.GAME_STATE_INVENTORY) {
+                    gPanel.getPlayer().useItem(gPanel.getUI().slotRow * 4 + gPanel.getUI().slotCol);
                 } 
                 break;
             case I:
                 iPressed = true;
-                if (gPanel.gameState == gPanel.playState) {
-                    gPanel.gameState = gPanel.inventoryState;
-                } else if (gPanel.gameState == gPanel.inventoryState) {
-                    gPanel.gameState = gPanel.playState;
+                if (gPanel.getGameState() == GameConstants.GAME_STATE_PLAY) {
+                    gPanel.setGameState(GameConstants.GAME_STATE_INVENTORY);
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_INVENTORY) {
+                    gPanel.setGameState(GameConstants.GAME_STATE_PLAY);
                 }
                 break;
             case A:
                 attackPressed = true;
                 break;
             case ENTER:
-                if (gPanel.gameState == gPanel.dialogueState) {
-                    if (!gPanel.ui.advanceDialogue()) {
-                        gPanel.gameState = gPanel.playState; // Revenir en mode jeu si le dialogue est terminé
+                if (gPanel.getGameState() == GameConstants.GAME_STATE_DIALOGUE) {
+                    if (!gPanel.getUI().advanceDialogue()) {
+                        gPanel.setGameState(GameConstants.GAME_STATE_PLAY);
                     }
-                } else if (gPanel.gameState == gPanel.playState) {
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_PLAY) {
                     enterPressed = true;
-                } else if (gPanel.gameState == gPanel.commerceState) {
-                    int itemIndex = gPanel.ui.slotRow * 4 + gPanel.ui.slotCol;
-                    if (itemIndex < gPanel.merchant.inventory.getItems().size()) {
-                        gPanel.merchant.trade(gPanel.merchant.inventory.getItems().get(itemIndex));
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_COMMERCE) {
+                    int itemIndex = gPanel.getUI().slotRow * 4 + gPanel.getUI().slotCol;
+                    if (gPanel.getMerchant() != null && itemIndex < gPanel.getMerchant().inventory.getItems().size()) {
+                        gPanel.getMerchant().trade(gPanel.getMerchant().inventory.getItems().get(itemIndex));
                     }
                 }
                 break;
             case UP:
-                if (gPanel.gameState == gPanel.playState) {
+                if (gPanel.getGameState() == GameConstants.GAME_STATE_PLAY) {
                     moveUp = true;
-                } else if (gPanel.gameState == gPanel.inventoryState) {
-                    gPanel.ui.slotRow = Math.max(gPanel.ui.slotRow - 1, 0);
-                } else if (gPanel.gameState == gPanel.commerceState) {
-                    gPanel.ui.slotRow = Math.max(gPanel.ui.slotRow - 1, 0);
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_INVENTORY) {
+                    gPanel.getUI().slotRow = Math.max(gPanel.getUI().slotRow - 1, 0);
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_COMMERCE) {
+                    gPanel.getUI().slotRow = Math.max(gPanel.getUI().slotRow - 1, 0);
                 }
                 break;
             case DOWN:
-                if (gPanel.gameState == gPanel.playState) {
+                if (gPanel.getGameState() == GameConstants.GAME_STATE_PLAY) {
                     moveDown = true;
-                } else if (gPanel.gameState == gPanel.inventoryState) {
-                    gPanel.ui.slotRow = Math.min(gPanel.ui.slotRow + 1, 5); // assuming 6 rows
-                } else if (gPanel.gameState == gPanel.commerceState) {
-                    gPanel.ui.slotRow = Math.min(gPanel.ui.slotRow + 1, 5); // assuming 6 rows
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_INVENTORY) {
+                    gPanel.getUI().slotRow = Math.min(gPanel.getUI().slotRow + 1, GameConstants.INVENTORY_MAX_ROWS - 1);
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_COMMERCE) {
+                    gPanel.getUI().slotRow = Math.min(gPanel.getUI().slotRow + 1, GameConstants.INVENTORY_MAX_ROWS - 1);
                 }
                 break;
             case LEFT:
-                if (gPanel.gameState == gPanel.playState) {
+                if (gPanel.getGameState() == GameConstants.GAME_STATE_PLAY) {
                     moveLeft = true;
-                } else if (gPanel.gameState == gPanel.inventoryState) {
-                    gPanel.ui.slotCol = Math.max(gPanel.ui.slotCol - 1, 0);
-                } else if (gPanel.gameState == gPanel.commerceState) {
-                    gPanel.ui.slotCol = Math.max(gPanel.ui.slotCol - 1, 0);
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_INVENTORY) {
+                    gPanel.getUI().slotCol = Math.max(gPanel.getUI().slotCol - 1, 0);
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_COMMERCE) {
+                    gPanel.getUI().slotCol = Math.max(gPanel.getUI().slotCol - 1, 0);
                 }
                 break;
             case RIGHT:
-                if (gPanel.gameState == gPanel.playState) {
+                if (gPanel.getGameState() == GameConstants.GAME_STATE_PLAY) {
                     moveRight = true;
-                } else if (gPanel.gameState == gPanel.inventoryState) {
-                    gPanel.ui.slotCol = Math.min(gPanel.ui.slotCol + 1, 3); // assuming 4 columns
-                } else if (gPanel.gameState == gPanel.commerceState) {
-                    gPanel.ui.slotCol = Math.min(gPanel.ui.slotCol + 1, 3); // assuming 4 columns
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_INVENTORY) {
+                    gPanel.getUI().slotCol = Math.min(gPanel.getUI().slotCol + 1, GameConstants.INVENTORY_COLUMNS - 1);
+                } else if (gPanel.getGameState() == GameConstants.GAME_STATE_COMMERCE) {
+                    gPanel.getUI().slotCol = Math.min(gPanel.getUI().slotCol + 1, GameConstants.INVENTORY_COLUMNS - 1);
                 }
                 break;
             case T:

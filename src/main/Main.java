@@ -1,6 +1,7 @@
 package main;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -23,10 +24,13 @@ public class Main extends Application {
 
         root.setCenter(gamePanel);
 
-        gamePanel.setupGame();
-        gamePanel.startGameLoop();
-
         mainStage.show();
+        
+        // Initialiser le jeu après que la fenêtre soit affichée
+        Platform.runLater(() -> {
+            gamePanel.setupGame();
+            gamePanel.startGameLoop();
+        });
     }
 
     public static void main(String[] args) 
